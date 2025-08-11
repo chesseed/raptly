@@ -82,7 +82,7 @@ func (c *PublishDropCmd) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Dropped  %s/%s\n", c.Prefix, c.Distribution)
+	fmt.Printf("Dropped %s/%s\n", c.Prefix, c.Distribution)
 
 	return nil
 }
@@ -105,7 +105,7 @@ func (c *PublishRepoCmd) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Published:  %s\n", list.Path)
+	fmt.Printf("Published: %s\n", list.Path)
 
 	return nil
 }

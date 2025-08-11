@@ -44,7 +44,7 @@ func main() {
 		if cli.BasicPW != nil {
 			client.GetClient().SetBasicAuth(*cli.User, *cli.BasicPW)
 		} else {
-			fmt.Fprintf(os.Stderr, "Basic auth username set but no password, define RAPTLY_BASIC_PASS environment variable or use --basic-pass")
+			fmt.Fprintf(os.Stderr, "Basic auth username set but no password, define RAPTLY_BASIC_PASS environment variable or use --basic-pass\n")
 			os.Exit(1)
 		}
 	}
