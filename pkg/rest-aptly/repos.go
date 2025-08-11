@@ -260,3 +260,77 @@ func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOp
 	}
 	return result, getError(resp)
 }
+
+type RepoIncludeOptions struct {
+	ForceReplace    bool
+	NoRemove        bool
+	AcceptUnsigned  bool
+	IgnoreSignature bool
+}
+
+func (c *Client) ReposIncludeFile(repo string, directory string, filename string, opts RepoIncludeOptions) (RepoAddResult, error) {
+
+	params := make(map[string]string)
+	if opts.NoRemove {
+		params["noRemove"] = "1"
+	}
+	if opts.ForceReplace {
+		params["forceReplace"] = "1"
+	}
+	if opts.AcceptUnsigned {
+		params["acceptUnsigned"] = "1"
+	}
+	if opts.IgnoreSignature {
+		params["ignoreSignature"] = "1"
+	}
+
+	var result RepoAddResult
+
+	resp, err := c.client.R().
+		SetPathParam("name", repo).
+		SetPathParam("dir", directory).
+		SetPathParam("file", filename).
+		SetQueryParams(params).
+		SetResult(&result).
+		Post("api/repos/{name}/include/{dir}/{file}")
+
+	if err != nil {
+		return result, err
+	} else if resp.IsSuccess() {
+		return result, nil
+	}
+	return result, getError(resp)
+}
+
+func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoIncludeOptions) (RepoAddResult, error) {
+
+	params := make(map[string]string)
+	if opts.NoRemove {
+		params["noRemove"] = "1"
+	}
+	if opts.ForceReplace {
+		params["forceReplace"] = "1"
+	}
+	if opts.AcceptUnsigned {
+		params["acceptUnsigned"] = "1"
+	}
+	if opts.IgnoreSignature {
+		params["ignoreSignature"] = "1"
+	}
+
+	var result RepoAddResult
+
+	resp, err := c.client.R().
+		SetPathParam("name", repo).
+		SetPathParam("dir", directory).
+		SetQueryParams(params).
+		SetResult(&result).
+		Post("api/repos/{name}/include/{dir}")
+
+	if err != nil {
+		return result, err
+	} else if resp.IsSuccess() {
+		return result, nil
+	}
+	return result, getError(resp)
+}

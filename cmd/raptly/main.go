@@ -18,7 +18,7 @@ type Context struct {
 var cli struct {
 	Version kong.VersionFlag `name:"version" help:"Print version information and quit"`
 
-	Url      string  `kong:"required,help='Aptly server API URL',env='RAPTLY_URL'"`
+	Url      string  `kong:"help='required,Aptly server API URL',env='RAPTLY_URL'"`
 	Insecure bool    `kong:"optional,help='Allow insecure HTTPS connections'"`
 	User     *string `kong:"help='HTTP basic auth username',env='RAPTLY_USER'"`
 	BasicPW  *string `kong:"name='basic-pass',help='HTTP basic auth password',env='RAPTLY_BASIC_PASS'"`

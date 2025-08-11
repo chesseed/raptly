@@ -12,13 +12,14 @@ import (
 )
 
 type RepoCLI struct {
-	List   RepoListCmd   `kong:"cmd,help='get list of all local package repositories on server'"`
-	Show   RepoShowCmd   `kong:"cmd,help='display information about local repository, possibly listing all packages in the repository'"`
-	Create RepoCreateCmd `kong:"cmd,help='create local package repository'"`
-	Edit   RepoEditCmd   `kong:"cmd,help='change metadata of local repository'"`
-	Drop   RepoDropCmd   `kong:"cmd,help='deletes information about local package repository'"`
-	Rename RepoRenameCmd `kong:"cmd,help='change name of the local repository'"`
-	Add    RepoAddCmd    `kong:"cmd,help='add file(s) to repository'"`
+	List    RepoListCmd    `kong:"cmd,help='get list of all local package repositories on server'"`
+	Show    RepoShowCmd    `kong:"cmd,help='display information about local repository, possibly listing all packages in the repository'"`
+	Create  RepoCreateCmd  `kong:"cmd,help='create local package repository'"`
+	Edit    RepoEditCmd    `kong:"cmd,help='change metadata of local repository'"`
+	Drop    RepoDropCmd    `kong:"cmd,help='deletes information about local package repository'"`
+	Rename  RepoRenameCmd  `kong:"cmd,help='change name of the local repository'"`
+	Add     RepoAddCmd     `kong:"cmd,help='add file(s) to repository'"`
+	Include RepoIncludeCmd `kong:"cmd,help='process .changes file or directory for upload'"`
 }
 
 type RepoListCmd struct{}
@@ -248,6 +249,93 @@ func getFilesFromDsc(path string) ([]string, error) {
 		return nil, err
 	}
 	for _, file := range dsc.Files {
+		path := filepath.Join(fileDir, file.Filename)
+		if checkFileExists(path) {
+			files = append(files, path)
+		} else {
+			return nil, fmt.Errorf("file '%s' referenced by '%s' does not exist", file.Filename, filename)
+		}
+	}
+	return files, nil
+}
+
+type RepoIncludeCmd struct {
+	ForceReplace     bool   `kong:"name='force-replace'"`
+	AcceptUnsigned   bool   `kong:"name='accept-unsigned'"`
+	IgnoreSignatures bool   `kong:"name='ignore-signatures'"`
+	Name             string `kong:"arg"`
+	Path             string `kong:"arg"`
+}
+
+func (c *RepoIncludeCmd) Run(ctx *Context) error {
+	dir := fmt.Sprintf("upload_%s", randSeq(8))
+	filesToUpload := []string{}
+
+	fi, err := os.Stat(c.Path)
+	if err != nil {
+		return err
+	}
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		// upload all debian changes files in directory
+		err := filepath.Walk(c.Path, func(path string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				extension := filepath.Ext(path)
+				if extension == ".changes" {
+					filesToUpload = append(filesToUpload, path)
+					referenced, err := getFilesFromChanges(path)
+					if err != nil {
+						return err
+					}
+					filesToUpload = append(filesToUpload, referenced...)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		if len(filesToUpload) == 0 {
+			return fmt.Errorf("no debian *.changes files found in dir '%s'", c.Path)
+		}
+	case mode.IsRegular():
+		extension := filepath.Ext(c.Path)
+		if extension == ".changes" {
+			filesToUpload = append(filesToUpload, c.Path)
+			referenced, err := getFilesFromChanges(c.Path)
+			if err != nil {
+				return err
+			}
+			filesToUpload = append(filesToUpload, referenced...)
+		} else {
+			return fmt.Errorf("file '%s' not a debian *.changes files", c.Path)
+		}
+	}
+
+	_, err = ctx.client.FilesUpload(dir, filesToUpload)
+	if err != nil {
+		return err
+	}
+	res, err := ctx.client.ReposAddDirectory(c.Name, dir, aptly.RepoAddOptions{ForceReplace: c.ForceReplace})
+	if err != nil {
+		return err
+	}
+	if len(res.FailedFiles) > 0 {
+		return fmt.Errorf("failed files:\n%v", res.FailedFiles)
+	}
+
+	fmt.Printf("Added %s\n", c.Path)
+	return nil
+}
+
+func getFilesFromChanges(path string) ([]string, error) {
+	files := []string{}
+	fileDir, filename := filepath.Split(path)
+	changes, err := control.ParseChangesFile(path)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range changes.Files {
 		path := filepath.Join(fileDir, file.Filename)
 		if checkFileExists(path) {
 			files = append(files, path)
