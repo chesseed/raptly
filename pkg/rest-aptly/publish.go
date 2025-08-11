@@ -22,8 +22,8 @@ const (
 
 type PublishedList struct {
 	//AcquireByHash bool `json:"acquireByHash,omitempty"`
+	// which architectures are published
 	Architectures []string
-	Component     string
 	Distribution  string
 	Label         string
 	Origin        string

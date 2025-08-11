@@ -5,7 +5,7 @@ WIP
 ## Currently not implemented
 
 * mirror API
-* repo include/import/copy/move/remove/search
+* repo import/copy/move/remove/search
 * snapshot verify/pull/filter/merge/search
 * db API
 * task API

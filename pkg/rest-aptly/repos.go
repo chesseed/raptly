@@ -202,8 +202,10 @@ type RepoAddResult struct {
 }
 
 type RepoAddOptions struct {
+	// when adding package that conflicts with existing package, remove existing package
 	ForceReplace bool
-	NoRemove     bool
+	// remove files that have been imported successfully into repository
+	NoRemove bool
 }
 
 func (c *Client) ReposAddFile(repo string, directory string, filename string, opts RepoAddOptions) (RepoAddResult, error) {
@@ -262,12 +264,19 @@ func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOp
 }
 
 type RepoIncludeOptions struct {
-	ForceReplace    bool
-	NoRemove        bool
-	AcceptUnsigned  bool
+	// when adding package that conflicts with existing package, remove existing package
+	ForceReplace bool
+	// remove files that have been imported successfully into repository
+	NoRemove bool
+	// accept unsigned .changes files
+	AcceptUnsigned bool
+	// disable verification of .changes file signature
 	IgnoreSignature bool
 }
 
+// include previously uploaded changes to repository
+//
+// Note: does not check files, it's the caller's responsibility to ensure the file is a valid changes file
 func (c *Client) ReposIncludeFile(repo string, directory string, filename string, opts RepoIncludeOptions) (RepoAddResult, error) {
 
 	params := make(map[string]string)
@@ -302,6 +311,7 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 	return result, getError(resp)
 }
 
+// include previously uploaded directory to repository
 func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoIncludeOptions) (RepoAddResult, error) {
 
 	params := make(map[string]string)

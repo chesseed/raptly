@@ -10,7 +10,7 @@ All flags use the long form with double hyphen `--` instead of single hypen `-`
 
 * signing options
 * all mirror commands
-* repo include/import/copy/move/remove/search
+* repo import/copy/move/remove/search
 * snapshot verify/pull/filter/merge/search
 * db commands
 * task commands
