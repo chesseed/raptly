@@ -18,6 +18,8 @@ github.com/mattn/go-sqlite3 v1.14.28 h1:ThEiQrnbtumT+QMknw63Befp/ce/nUPgBPMlRFEu
 github.com/mattn/go-sqlite3 v1.14.28/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/maxatome/go-testdeep v1.14.0 h1:rRlLv1+kI8eOI3OaBXZwb3O7xY3exRzdW5QyX48g9wI=
 github.com/maxatome/go-testdeep v1.14.0/go.mod h1:lPZc/HAcJMP92l7yI6TRz1aZN5URwUBUAfUNvrclaNM=
+github.com/maxatome/tdhttpmock v1.0.0 h1:yExbhieb7XayhnxlfumXcvFjQGKHElJZkXTYKtQeZC4=
+github.com/maxatome/tdhttpmock v1.0.0/go.mod h1:WrKuKZ2l6bqOD5z6PHiafRrrgqDH8ERxZgmaQwkjjYI=
 github.com/moznion/go-optional v0.13.0 h1:0vFY5oa1lZ+6/bStvhGhwqQoO0mJBlgHgK/bilSvbaY=
 github.com/moznion/go-optional v0.13.0/go.mod h1:dF1w8zPjco8sOCCLzk+/1HLSLKI4iKdSLdJu0PYhWwg=
 github.com/napalu/goopt/v2 v2.3.5 h1:N9WkqWgID1sjAnjRQGbJ8RL6YO1LzaSvmL/29FG/al0=

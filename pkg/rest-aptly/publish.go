@@ -40,11 +40,13 @@ type PublishDropOptions struct {
 }
 
 func escapePrefix(prefix string) string {
-	s1 := strings.Replace(prefix, ":", ".", -1)
-	s2 := strings.Replace(s1, "_", "__", -1)
-	s3 := strings.Replace(s2, "/", "_", -1)
+	if prefix == "." {
+		return ":."
+	}
+	s1 := strings.Replace(prefix, "_", "__", -1)
+	s2 := strings.Replace(s1, "/", "_", -1)
 
-	return s3
+	return s2
 }
 
 type PublishOptions struct {
@@ -119,13 +121,13 @@ func (c *Client) PublishList() ([]PublishedList, error) {
 	return lists, getError(resp)
 }
 
-func (c *Client) PublishShow(name string, prefix string) (PublishedList, error) {
+func (c *Client) PublishShow(distribution string, prefix string) (PublishedList, error) {
 	var lists PublishedList
 
 	resp, err := c.client.R().
 		SetResult(&lists).
 		SetPathParams(map[string]string{
-			"name":   name,
+			"name":   distribution,
 			"prefix": escapePrefix(prefix),
 		}).
 		Get("api/publish/{prefix}/{name}")

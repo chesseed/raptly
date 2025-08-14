@@ -14,6 +14,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
+	github.com/maxatome/go-testdeep v1.14.0 // indirect
+	github.com/maxatome/tdhttpmock v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/net v0.41.0 // indirect

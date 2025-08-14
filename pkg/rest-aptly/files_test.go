@@ -62,9 +62,9 @@ func TestFilesUpload(t *testing.T) {
 	client := NewClient("http://host.local")
 	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 
-	data1 := "file 1 data"
+	data1 := "file0 data"
 
-	f1, err := os.CreateTemp("", "file0")
+	f1, err := os.CreateTemp("", "file0_")
 	assert.Nil(t, err)
 	defer os.Remove(f1.Name())
 	_, err = f1.WriteString(data1)
@@ -80,12 +80,12 @@ func TestFilesUpload(t *testing.T) {
 			if !equal {
 				return httpmock.NewStringResponse(400, "not equal"), nil
 			}
-			return httpmock.NewJsonResponse(200, []string{"file1", "file2", "file3"})
+			return httpmock.NewJsonResponse(200, []string{"file0", "extra", "another"})
 		})
 
 	list, err := client.FilesUpload("dirTest", []string{f1.Name()})
 	assert.Nil(t, err)
-	assert.ElementsMatch(t, list, []string{"file1", "file2", "file3"})
+	assert.ElementsMatch(t, list, []string{"file0", "extra", "another"})
 }
 
 func TestFilesDeleteDir(t *testing.T) {
