@@ -94,8 +94,9 @@ type signingCommands struct {
 	GpgKey  string `kong:"name='gpg-key',help='GPG key ID to use when signing the release, if not specified default key is used'"`
 	Keyring string `kong:"help='GPG keyring to use (instead of default)'"`
 
-	Passphrase string `kong:"name='passphrase',help='GPG passphrase to unlock private key (possibly insecure)'"`
-	PassFile   string `kong:"name='passphrase-file',help='GPG passphrase file to unlock private key, on the local machine NOT the server'"`
+	Passphrase     string `kong:"name='passphrase',help='GPG passphrase to unlock private key (possibly insecure)'"`
+	PassFile       string `kong:"name='passphrase-file',help='GPG passphrase file to unlock private key, on the local machine NOT the server'"`
+	RemotePassFile string `kong:"name='remote-passphrase-file',help='GPG passphrase file to unlock private key, on the server'"`
 }
 
 func (cmd *signingCommands) MakeSigningOptions() (aptly.PublishSigningOptions, error) {
@@ -103,9 +104,10 @@ func (cmd *signingCommands) MakeSigningOptions() (aptly.PublishSigningOptions, e
 		return aptly.WithoutSigning(), nil
 	}
 	opts := aptly.PublishSigningOptions{
-		Skip:       false,
-		GpgKey:     cmd.GpgKey,
-		Passphrase: cmd.Passphrase,
+		Skip:           false,
+		GpgKey:         cmd.GpgKey,
+		Passphrase:     cmd.Passphrase,
+		PassphraseFile: cmd.RemotePassFile,
 	}
 	if cmd.PassFile != "" {
 		b, err := os.ReadFile(cmd.PassFile)
