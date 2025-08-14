@@ -163,18 +163,28 @@ func TestPublishDrop(t *testing.T) {
 	client := NewClient("http://host.local")
 	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 
-	// without parameters
-	httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/simple/bookworm", map[string]string{},
-		httpmock.NewStringResponder(200, "ok").Once())
-	// with parameters
-	httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
-		httpmock.NewStringResponder(200, "ok").Once())
-	// without parameters
-	err := client.PublishDrop("bookworm", "simple", PublishDropOptions{})
-	assert.Nil(t, err)
-	// with parameters
-	err = client.PublishDrop("bookworm", "params", PublishDropOptions{Force: true, SkipCleanup: true})
-	assert.Nil(t, err)
+	t.Run("without parameters", func(t *testing.T) {
+		httpmock.Activate(t)
+		client := NewClient("http://host.local")
+		httpmock.ActivateNonDefault(client.GetClient().GetClient())
+
+		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/simple/bookworm", map[string]string{},
+			httpmock.NewStringResponder(200, "ok").Once())
+
+		err := client.PublishDrop("bookworm", "simple", PublishDropOptions{})
+		assert.Nil(t, err)
+	})
+
+	t.Run("with parameters", func(t *testing.T) {
+		httpmock.Activate(t)
+		client := NewClient("http://host.local")
+		httpmock.ActivateNonDefault(client.GetClient().GetClient())
+
+		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
+			httpmock.NewStringResponder(200, "ok").Once())
+		err := client.PublishDrop("bookworm", "params", PublishDropOptions{Force: true, SkipCleanup: true})
+		assert.Nil(t, err)
+	})
 }
 
 func TestPublishRepo(t *testing.T) {
@@ -183,7 +193,11 @@ func TestPublishRepo(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 
 	httpmock.RegisterMatcherResponder("POST", "http://host.local/api/publish/prefix",
-		tdhttpmock.JSONBody(td.JSONPointer("/SourceKind", "local")),
+		httpmock.Matcher{}.And(
+			tdhttpmock.JSONBody(td.JSONPointer("/SourceKind", "local")),
+			tdhttpmock.JSONBody(td.JSONPointer("/Sources/0/Name", "testing")),
+			tdhttpmock.JSONBody(td.JSONPointer("/Signing/Skip", true)),
+		),
 		func(req *http.Request) (*http.Response, error) {
 			resp := httpmock.NewStringResponse(200, `
 {
@@ -228,6 +242,8 @@ func TestPublishRepo(t *testing.T) {
 		SourceKind:    "local",
 		Sources:       []SourceEntry{{Name: "testing", Component: "main"}},
 	}, published)
+
+	// TODO more complicated options
 }
 
 // func TestPublishSnapshot(t *testing.T) {
