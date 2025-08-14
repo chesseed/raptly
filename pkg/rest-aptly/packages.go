@@ -1,29 +1,20 @@
 package aptly
 
-import "encoding/json"
-
 type Package struct {
 	Key       string
 	ShortKey  string
 	FilesHash string
-	Extras    map[string]string
-}
+	//
+	Version      string
+	Architecture string
+	// package name
+	Package string
+	// List of virtual packages this package provides
+	Provides []string
 
-func (p *Package) UnmarshalJSON(bs []byte) (err error) {
+	Source *string
 
-	m := make(map[string]string)
-
-	if err = json.Unmarshal(bs, &m); err == nil {
-		p.Key = m["Key"]
-		p.ShortKey = m["ShortKey"]
-		p.FilesHash = m["FilesHash"]
-		delete(m, "Key")
-		delete(m, "ShortKey")
-		delete(m, "FilesHash")
-		p.Extras = m
-	}
-
-	return err
+	//Extras map[string]string
 }
 
 // Get list of packages keys
@@ -75,4 +66,22 @@ func (c *Client) PackagesSearchDetailed(query string) ([]Package, error) {
 		return packages, nil
 	}
 	return packages, getError(resp)
+}
+
+// Get package by key
+func (c *Client) PackagesInfo(key string) (Package, error) {
+
+	var pkg Package
+
+	resp, err := c.client.R().
+		SetPathParam("key", key).
+		SetResult(&pkg).
+		Get("api/packages/{key}")
+
+	if err != nil {
+		return pkg, err
+	} else if resp.IsSuccess() {
+		return pkg, nil
+	}
+	return pkg, getError(resp)
 }
