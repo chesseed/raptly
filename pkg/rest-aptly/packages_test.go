@@ -94,6 +94,23 @@ func TestPackagesSearchDetailed(t *testing.T) {
         "Size": "2628",
         "Source": "hello",
         "Version": "3.0.0-2"
+    },
+    {
+        "Architecture": "any",
+        "Binary": "hello",
+        "Build-Depends": "build-essential, debhelper (>= 9)",
+        "Checksums-Sha1": " 3f0a502de585a30e24d7c7141559602eced32858 470 hello_3.0.0-2.dsc\n 062e2e42233c6fbe058a44e3c50ef1bf454acc96 3448 hello_3.0.0-2.tar.gz\n",
+        "Checksums-Sha256": " f3767c240a5221e6122e1e561bba81ab36891218a6f5471b8705e2913df9e93c 470 hello_3.0.0-2.dsc\n b84597204d5ee78dbdc9e2fe041d93aa19c444d145e21ec16bfb4602ecb36f99 3448 hello_3.0.0-2.tar.gz\n",
+        "Checksums-Sha512": " 37c9da0f380303329908d00fe0c9806b215e12721faae8e6c056a3c1f0916679800f660f51ba990ca3577303a3dd982c6900959b40052afc5c88d696ee607ab2 470 hello_3.0.0-2.dsc\n caaa02e2bc9de1d7cbfdd6c7759c974c72ec0b58650e12ad34c5b7f895e67e7d4327ce4e3256e7cfcd14ee4a306ccc3f1bd5d9bf61cedf88edbfd40e7bb59243 3448 hello_3.0.0-2.tar.gz\n",
+        "Files": " 58e1956baa409b0980474b33cb5a9e99 470 hello_3.0.0-2.dsc\n 30be0886385224b34c96853cf52262fe 3448 hello_3.0.0-2.tar.gz\n",
+        "FilesHash": "571d33f41765ddba",
+        "Format": "1.0",
+        "Key": "Psource hello 3.0.0-2 571d33f41765ddba",
+        "Maintainer": "John Doe <john@doe.com>",
+        "Package": "hello",
+        "Package-List": " hello deb devel optional arch=any\n",
+        "ShortKey": "Psource hello 3.0.0-2",
+        "Version": "3.0.0-2"
     }
 ]
 			`)
@@ -120,6 +137,14 @@ func TestPackagesSearchDetailed(t *testing.T) {
 			Version:      "3.0.0-2",
 			Package:      "hello-dbgsym",
 			Source:       ptr("hello"),
+		},
+		{
+			Architecture: "any",
+			Key:          "Psource hello 3.0.0-2 571d33f41765ddba",
+			ShortKey:     "Psource hello 3.0.0-2",
+			FilesHash:    "571d33f41765ddba",
+			Version:      "3.0.0-2",
+			Package:      "hello",
 		},
 	}, pkgs)
 }
