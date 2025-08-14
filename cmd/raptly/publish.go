@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 	aptly "raptly/pkg/rest-aptly"
 )
 
-type PublishCLI struct {
-	List     PublishListCmd     `kong:"cmd,help='Lists repositories that have been published with aptly publish snapshot and aptly publish repo.'"`
-	Repo     PublishRepoCmd     `kong:"cmd,help='Publishes local repository directly, bypassing snapshot creation step.'"`
-	Snapshot PublishSnapshotCmd `kong:"cmd,help='Publishes snapshot as repository to be consumed by apt.'"`
-	Update   PublishUpdateCmd   `kong:"cmd,help='Re-publishes (updates) published local repository.'"`
-	Switch   PublishSwitchCmd   `kong:"cmd,help='Switches in-place published repository with new snapshot contents.'"`
-	Show     PublishShowCmd     `kong:"cmd,help='Shows detailed information of published repository. Since Aptly 1.6.0'"`
-	Drop     PublishDropCmd     `kong:"cmd,help='Remove files belonging to published repository.'"`
+type publishCLI struct {
+	List     publishListCmd     `kong:"cmd,help='Lists repositories that have been published with aptly publish snapshot and aptly publish repo.'"`
+	Repo     publishRepoCmd     `kong:"cmd,help='Publishes local repository directly, bypassing snapshot creation step.'"`
+	Snapshot publishSnapshotCmd `kong:"cmd,help='Publishes snapshot as repository to be consumed by apt.'"`
+	Update   publishUpdateCmd   `kong:"cmd,help='Re-publishes (updates) published local repository.'"`
+	Switch   publishSwitchCmd   `kong:"cmd,help='Switches in-place published repository with new snapshot contents.'"`
+	Show     publishShowCmd     `kong:"cmd,help='Shows detailed information of published repository. Since Aptly 1.6.0'"`
+	Drop     publishDropCmd     `kong:"cmd,help='Remove files belonging to published repository.'"`
 }
 
 func formatPublishedRepository(list *aptly.PublishedList) string {
@@ -30,9 +31,9 @@ func formatPublishedRepository(list *aptly.PublishedList) string {
 	return fmt.Sprintf("%s %v publishes snaphot(s) {%s}", list.Path, list.Architectures, publishes)
 }
 
-type PublishListCmd struct{}
+type publishListCmd struct{}
 
-func (c *PublishListCmd) Run(ctx *Context) error {
+func (c *publishListCmd) Run(ctx *Context) error {
 	lists, err := ctx.client.PublishList()
 	if err != nil {
 		return err
@@ -44,12 +45,12 @@ func (c *PublishListCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishShowCmd struct {
+type publishShowCmd struct {
 	Distribution string `kong:"arg"`
 	Prefix       string `kong:"arg"`
 }
 
-func (c *PublishShowCmd) Run(ctx *Context) error {
+func (c *publishShowCmd) Run(ctx *Context) error {
 	list, err := ctx.client.PublishShow(c.Distribution, c.Prefix)
 	if err != nil {
 		return err
@@ -65,14 +66,14 @@ func (c *PublishShowCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishDropCmd struct {
+type publishDropCmd struct {
 	Distribution string `kong:"arg"`
 	Prefix       string `kong:"arg"`
 	ForceDrop    bool   `kong:"name='force-drop'"`
 	SkipCleanup  bool   `kong:"name='skip-cleanup'"`
 }
 
-func (c *PublishDropCmd) Run(ctx *Context) error {
+func (c *publishDropCmd) Run(ctx *Context) error {
 	opts := aptly.PublishDropOptions{
 		Force:       c.ForceDrop,
 		SkipCleanup: c.SkipCleanup,
@@ -87,21 +88,57 @@ func (c *PublishDropCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishRepoCmd struct {
-	Name         string  `kong:"arg"`
-	Prefix       string  `kong:"arg"`
-	Distribution *string `kong:"help='distribution name to publish; guessed from local repository default distribution'"`
-	Component    *string `kong:"help='component name to publish; it is taken from local repository default, otherwise it defaults to main'"`
+// common signing options
+type signingCommands struct {
+	Skip    bool   `kong:"name='skip-signing',help='do not sign Release files with GPG'"`
+	GpgKey  string `kong:"name='gpg-key',help='GPG key ID to use when signing the release, if not specified default key is used'"`
+	Keyring string `kong:"help='GPG keyring to use (instead of default)'"`
+
+	Passphrase string `kong:"name='passphrase',help='GPG passphrase to unlock private key (possibly insecure)'"`
+	PassFile   string `kong:"name='passphrase-file',help='GPG passphrase file to unlock private key, on the local machine NOT the server'"`
+}
+
+func (cmd *signingCommands) MakeSigningOptions() (aptly.PublishSigningOptions, error) {
+	if cmd.Skip {
+		return aptly.WithoutSigning(), nil
+	}
+	opts := aptly.PublishSigningOptions{
+		Skip:       false,
+		GpgKey:     cmd.GpgKey,
+		Passphrase: cmd.Passphrase,
+	}
+	if cmd.PassFile != "" {
+		b, err := os.ReadFile(cmd.PassFile)
+		if err != nil {
+			return opts, err
+		}
+		opts.Passphrase = string(b)
+	}
+
+	return opts, nil
+}
+
+type publishRepoCmd struct {
+	Name         string          `kong:"arg"`
+	Prefix       string          `kong:"arg"`
+	Distribution *string         `kong:"help='distribution name to publish; guessed from local repository default distribution'"`
+	Component    *string         `kong:"help='component name to publish; it is taken from local repository default, otherwise it defaults to main'"`
+	Signing      signingCommands `kong:"embed"` // shared
 }
 
 // TODO signing options
-func (c *PublishRepoCmd) Run(ctx *Context) error {
+func (c *publishRepoCmd) Run(ctx *Context) error {
 	opts := aptly.PublishOptions{
 		Distribution: c.Distribution,
 		Component:    c.Component,
 	}
 
-	list, err := ctx.client.PublishRepo(c.Name, c.Prefix, opts, aptly.WithoutSigning())
+	signing, err := c.Signing.MakeSigningOptions()
+	if err != nil {
+		return err
+	}
+
+	list, err := ctx.client.PublishRepo(c.Name, c.Prefix, opts, signing)
 	if err != nil {
 		return err
 	}
@@ -110,21 +147,26 @@ func (c *PublishRepoCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishSnapshotCmd struct {
-	Name         string  `kong:"arg"`
-	Prefix       string  `kong:"arg"`
-	Distribution *string `kong:"help='distribution name to publish; guessed from local repository default distribution'"`
-	Component    *string `kong:"help='component name to publish; it is taken from local repository default, otherwise it defaults to main'"`
+type publishSnapshotCmd struct {
+	Name         string          `kong:"arg"`
+	Prefix       string          `kong:"arg"`
+	Distribution *string         `kong:"help='distribution name to publish; guessed from local repository default distribution'"`
+	Component    *string         `kong:"help='component name to publish; it is taken from local repository default, otherwise it defaults to main'"`
+	Signing      signingCommands `kong:"embed"` // shared
 }
 
 // TODO signing options
-func (c *PublishSnapshotCmd) Run(ctx *Context) error {
+func (c *publishSnapshotCmd) Run(ctx *Context) error {
+	signing, err := c.Signing.MakeSigningOptions()
+	if err != nil {
+		return err
+	}
 	opts := aptly.PublishOptions{
 		Distribution: c.Distribution,
 		Component:    c.Component,
 	}
 
-	list, err := ctx.client.PublishSnapshot(c.Name, c.Prefix, opts, aptly.WithoutSigning())
+	list, err := ctx.client.PublishSnapshot(c.Name, c.Prefix, opts, signing)
 	if err != nil {
 		return err
 	}
@@ -133,15 +175,20 @@ func (c *PublishSnapshotCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishUpdateCmd struct {
-	Distribution string `kong:"arg,help='distribution name of published repository'"`
-	Prefix       string `kong:"arg"`
+type publishUpdateCmd struct {
+	Distribution string          `kong:"arg,help='distribution name of published repository'"`
+	Prefix       string          `kong:"arg"`
+	Signing      signingCommands `kong:"embed"` // shared
 }
 
 // TODO signing options
-func (c *PublishUpdateCmd) Run(ctx *Context) error {
+func (c *publishUpdateCmd) Run(ctx *Context) error {
+	signing, err := c.Signing.MakeSigningOptions()
+	if err != nil {
+		return err
+	}
 	opts := aptly.PublishUpdateOptions{
-		Signing: aptly.WithoutSigning(),
+		Signing: signing,
 	}
 
 	list, err := ctx.client.PublishUpdateOrSwitch(c.Prefix, c.Distribution, opts)
@@ -153,17 +200,22 @@ func (c *PublishUpdateCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type PublishSwitchCmd struct {
-	Distribution string `kong:"arg,help='distribution name of published repository'"`
-	Prefix       string `kong:"arg"`
-	Snapshot     string `kong:"arg"`
-	Component    string `kong:""`
+type publishSwitchCmd struct {
+	Distribution string          `kong:"arg,help='distribution name of published repository'"`
+	Prefix       string          `kong:"arg"`
+	Snapshot     string          `kong:"arg"`
+	Component    string          `kong:""`
+	Signing      signingCommands `kong:"embed"` // shared
 }
 
 // TODO signing options
-func (c *PublishSwitchCmd) Run(ctx *Context) error {
+func (c *publishSwitchCmd) Run(ctx *Context) error {
+	signing, err := c.Signing.MakeSigningOptions()
+	if err != nil {
+		return err
+	}
 	opts := aptly.PublishUpdateOptions{
-		Signing: aptly.WithoutSigning(),
+		Signing: signing,
 		Snapshots: []aptly.SourceEntryRequest{
 			{
 				Name:      c.Snapshot,

@@ -56,6 +56,8 @@ type PublishOptions struct {
 type PublishSigningOptions struct {
 	// skip signing
 	Skip bool `json:"Skip"`
+	// use batch mode, required for versions older than 1.6.0, will be set automatically
+	Batch bool `json:"Batch"`
 	// GPG key ID to use when signing the release, if not specified default key is used
 	GpgKey string `json:"GpgKey,omitempty"`
 	// GPG keyring to use (instead of default)
@@ -70,6 +72,10 @@ type PublishSigningOptions struct {
 
 func WithoutSigning() PublishSigningOptions {
 	return PublishSigningOptions{Skip: true}
+}
+
+func WithGpgKey(key string, passphrase string) PublishSigningOptions {
+	return PublishSigningOptions{GpgKey: key, Passphrase: passphrase}
 }
 
 type publishedRepoCreateParams struct {
@@ -179,6 +185,8 @@ func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, si
 		Distribution:  opts.Distribution,
 		Signing:       sign,
 	}
+	// workaround for older aptly versions
+	req.Signing.Batch = true
 
 	var list PublishedList
 	resp, err := c.client.R().
@@ -208,6 +216,8 @@ func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions
 		Distribution:  opts.Distribution,
 		Signing:       sign,
 	}
+	// workaround for older aptly versions
+	req.Signing.Batch = true
 
 	var list PublishedList
 	resp, err := c.client.R().
@@ -247,6 +257,9 @@ type PublishUpdateOptions struct {
 
 // Update published list to match repository
 func (c *Client) PublishUpdateOrSwitch(prefix string, distribution string, opts PublishUpdateOptions) (PublishedList, error) {
+
+	// workaround for older aptly versions
+	opts.Signing.Batch = true
 
 	var list PublishedList
 	resp, err := c.client.R().

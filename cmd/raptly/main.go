@@ -24,7 +24,7 @@ var cli struct {
 	BasicPW  *string `kong:"name='basic-pass',help='HTTP basic auth password',env='RAPTLY_BASIC_PASS'"`
 
 	Repo     RepoCLI     `kong:"cmd,help='Repository management commands',group='Repo'"`
-	Publish  PublishCLI  `kong:"cmd,help='Published lists commands',group='publish'"`
+	Publish  publishCLI  `kong:"cmd,help='Published lists commands',group='publish'"`
 	Snapshot SnapshotCLI `kong:"cmd,help='Snapshot lists commands',group='snapshot'"`
 	Package  PkgsCLI     `kong:"cmd,help='Package search commands',group='package'"`
 	Files    FilesCLI    `kong:"cmd,help='Uploaded file management commands',group='Files'"`
