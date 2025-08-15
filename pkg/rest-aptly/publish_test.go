@@ -1,7 +1,6 @@
 package aptly
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -19,13 +18,10 @@ func TestEscapePrefix(t *testing.T) {
 }
 
 func TestPublishList(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("GET", "http://host.local/api/publish",
-		func(req *http.Request) (*http.Response, error) {
-			resp := httpmock.NewStringResponse(200, `
+		newRawJsonResponder(200, `
 [
 	{
 		"AcquireByHash": false,
@@ -76,10 +72,8 @@ func TestPublishList(t *testing.T) {
 		"Storage": "",
 		"Suite": ""
 	}
-]`)
-			resp.Header.Add("Content-Type", "application/json")
-			return resp, nil
-		})
+]
+	`))
 
 	list, err := client.PublishList()
 	assert.Nil(t, err)
@@ -108,13 +102,10 @@ func TestPublishList(t *testing.T) {
 }
 
 func TestPublishShow(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("GET", "http://host.local/api/publish/snap/bookworm",
-		func(req *http.Request) (*http.Response, error) {
-			resp := httpmock.NewStringResponse(200, `
+		newRawJsonResponder(200, `
 {
 	"AcquireByHash": false,
 	"Architectures": [
@@ -139,10 +130,7 @@ func TestPublishShow(t *testing.T) {
 	"Storage": "",
 	"Suite": ""
 }
-`)
-			resp.Header.Add("Content-Type", "application/json")
-			return resp, nil
-		})
+	`))
 
 	published, err := client.PublishShow("bookworm", "snap")
 	assert.Nil(t, err)
@@ -159,14 +147,9 @@ func TestPublishShow(t *testing.T) {
 }
 
 func TestPublishDrop(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 
 	t.Run("without parameters", func(t *testing.T) {
-		httpmock.Activate(t)
-		client := NewClient("http://host.local")
-		httpmock.ActivateNonDefault(client.GetClient().GetClient())
+		client := clientForTest(t, "http://host.local")
 
 		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/simple/bookworm", map[string]string{},
 			httpmock.NewStringResponder(200, "ok").Once())
@@ -176,9 +159,7 @@ func TestPublishDrop(t *testing.T) {
 	})
 
 	t.Run("with parameters", func(t *testing.T) {
-		httpmock.Activate(t)
-		client := NewClient("http://host.local")
-		httpmock.ActivateNonDefault(client.GetClient().GetClient())
+		client := clientForTest(t, "http://host.local")
 
 		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
 			httpmock.NewStringResponder(200, "ok").Once())
@@ -188,9 +169,7 @@ func TestPublishDrop(t *testing.T) {
 }
 
 func TestPublishRepo(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterMatcherResponder("POST", "http://host.local/api/publish/prefix",
 		httpmock.Matcher{}.And(
@@ -198,8 +177,7 @@ func TestPublishRepo(t *testing.T) {
 			tdhttpmock.JSONBody(td.JSONPointer("/Sources/0/Name", "testing")),
 			tdhttpmock.JSONBody(td.JSONPointer("/Signing/Skip", true)),
 		),
-		func(req *http.Request) (*http.Response, error) {
-			resp := httpmock.NewStringResponse(200, `
+		newRawJsonResponder(200, `
 {
 	"AcquireByHash": false,
 	"Architectures": [
@@ -224,11 +202,7 @@ func TestPublishRepo(t *testing.T) {
 	"Storage": "",
 	"Suite": ""
 }
-`)
-			resp.Header.Add("Content-Type", "application/json")
-			return resp, nil
-		},
-	)
+	`))
 
 	published, err := client.PublishRepo("testing", "prefix", PublishOptions{}, WithoutSigning())
 	assert.Nil(t, err)

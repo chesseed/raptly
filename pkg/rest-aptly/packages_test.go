@@ -9,9 +9,7 @@ import (
 )
 
 func TestPackagesSearch(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("GET", "http://host.local/api/packages",
 		func(req *http.Request) (*http.Response, error) {
@@ -43,14 +41,11 @@ func ptr[T any](v T) *T {
 }
 
 func TestPackagesSearchDetailed(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponderWithQuery("GET", "http://host.local/api/packages",
 		map[string]string{"format": "details"},
-		func(req *http.Request) (*http.Response, error) {
-			resp := httpmock.NewStringResponse(200, `
+		newRawJsonResponder(200, `
 [
     {
         "Architecture": "amd64",
@@ -113,10 +108,7 @@ func TestPackagesSearchDetailed(t *testing.T) {
         "Version": "3.0.0-2"
     }
 ]
-			`)
-			resp.Header.Add("Content-Type", "application/json")
-			return resp, nil
-		})
+	`))
 
 	pkgs, err := client.PackagesSearchDetailed("")
 	assert.Nil(t, err)
@@ -150,13 +142,9 @@ func TestPackagesSearchDetailed(t *testing.T) {
 }
 
 func TestPackagesInfo(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f",
-		func(req *http.Request) (*http.Response, error) {
-			resp := httpmock.NewStringResponse(200, `
+	httpmock.RegisterResponder("GET", "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f", newRawJsonResponder(200, `
 {
     "Architecture": "amd64",
     "Depends": "libc6 (>= 2.34)",
@@ -177,10 +165,7 @@ func TestPackagesInfo(t *testing.T) {
     "Size": "2648",
     "Version": "3.0.0-2"
 }
-			`)
-			resp.Header.Add("Content-Type", "application/json")
-			return resp, nil
-		})
+	`))
 
 	pkg, err := client.PackagesInfo("Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f")
 	assert.Nil(t, err)

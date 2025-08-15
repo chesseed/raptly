@@ -12,9 +12,7 @@ import (
 )
 
 func TestFilesListDirs(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("GET", "http://host.local/api/files",
 		func(req *http.Request) (*http.Response, error) {
@@ -27,9 +25,7 @@ func TestFilesListDirs(t *testing.T) {
 }
 
 func TestFilesListFiles(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("GET", "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
@@ -58,9 +54,7 @@ func formFileEqual(req *http.Request, name string, data []byte) (bool, error) {
 
 // TODO find out how to test upload with resty
 func TestFilesUpload(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	data1 := "file0 data"
 
@@ -89,9 +83,7 @@ func TestFilesUpload(t *testing.T) {
 }
 
 func TestFilesDeleteDir(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("DELETE", "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
@@ -102,9 +94,7 @@ func TestFilesDeleteDir(t *testing.T) {
 	assert.Nil(t, err)
 }
 func TestFilesDeleteFile(t *testing.T) {
-	httpmock.Activate(t)
-	client := NewClient("http://host.local")
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder("DELETE", "http://host.local/api/files/dirTest/file",
 		func(req *http.Request) (*http.Response, error) {
