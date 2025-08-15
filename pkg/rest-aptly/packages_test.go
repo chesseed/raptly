@@ -190,5 +190,6 @@ func TestPackagesInfo(t *testing.T) {
 		ShortKey:     "Pamd64 hello 3.0.0-2",
 		FilesHash:    "96e8a0deaf8fc95f",
 		Version:      "3.0.0-2",
+		Package:      "hello",
 	}, pkg)
 }
