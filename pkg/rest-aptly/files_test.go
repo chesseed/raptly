@@ -14,7 +14,7 @@ import (
 func TestFilesListDirs(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/files",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/files",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"dir1", "dir2", "dir3"})
 		})
@@ -27,7 +27,7 @@ func TestFilesListDirs(t *testing.T) {
 func TestFilesListFiles(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/files/dirTest",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"file1", "file2", "file3"})
 		})
@@ -64,7 +64,7 @@ func TestFilesUpload(t *testing.T) {
 	_, err = f1.WriteString(data1)
 	assert.NoError(t, err)
 
-	httpmock.RegisterResponder("POST", "http://host.local/api/files/dirTest",
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
 			req.ParseMultipartForm(1024 * 1024 * 4)
 			equal, err := formFileEqual(req, "file0", []byte(data1))

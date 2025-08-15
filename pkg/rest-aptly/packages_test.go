@@ -11,11 +11,11 @@ import (
 func TestPackagesSearch(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/packages",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/packages",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"pkg1", "pkg2", "pkg3"})
 		})
-	httpmock.RegisterResponderWithQuery("GET", "http://host.local/api/packages",
+	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/packages",
 		map[string]string{"q": "query"},
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"queried1", "queried2", "queried3"})
@@ -38,7 +38,7 @@ func TestPackagesSearch(t *testing.T) {
 func TestPackagesSearchDetailed(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponderWithQuery("GET", "http://host.local/api/packages",
+	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/packages",
 		map[string]string{"format": "details"},
 		newRawJsonResponder(200, `
 [
@@ -139,7 +139,7 @@ func TestPackagesSearchDetailed(t *testing.T) {
 func TestPackagesInfo(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f", newRawJsonResponder(200, `
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f", newRawJsonResponder(200, `
 {
     "Architecture": "amd64",
     "Depends": "libc6 (>= 2.34)",

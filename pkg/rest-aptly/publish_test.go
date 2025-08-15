@@ -1,6 +1,7 @@
 package aptly
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -171,7 +172,7 @@ func TestPublishDrop(t *testing.T) {
 func TestPublishRepo(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterMatcherResponder("POST", "http://host.local/api/publish/prefix",
+	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/api/publish/prefix",
 		httpmock.Matcher{}.And(
 			tdhttpmock.JSONBody(td.JSONPointer("/SourceKind", "local")),
 			tdhttpmock.JSONBody(td.JSONPointer("/Sources/0/Name", "testing")),

@@ -18,15 +18,15 @@ func TestGetError(t *testing.T) {
 	// Get the underlying HTTP Client and set it to Mock
 	httpmock.ActivateNonDefault(client.GetClient())
 
-	httpmock.RegisterResponder("GET", "http://host.local/json/content-type",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(500, ApiError{Error: "json"})
 		})
-	httpmock.RegisterResponder("GET", "http://host.local/plain/content-type",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(501, `{"error": "plain"}`), nil
 		})
-	httpmock.RegisterResponder("GET", "http://host.local/invalid",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/invalid",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(502, ""), nil
 		})
