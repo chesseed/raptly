@@ -8,10 +8,10 @@ type Snapshot struct {
 	CreatedAt  string `json:"CreatedAt"`
 	SourceKind string `json:"SourceKind"`
 	// Sources
-	Snapshots []*Snapshot `json:",omitempty"`
+	Snapshots []Snapshot `json:",omitempty"`
 	//RemoteRepos []*RemoteRepo `json:",omitempty"`
-	LocalRepos []*LocalRepo `json:",omitempty"`
-	Packages   []string     `json:",omitempty"`
+	LocalRepos []LocalRepo `json:",omitempty"`
+	Packages   []string    `json:",omitempty"`
 
 	// Description of how snapshot was created
 	Description string
@@ -169,45 +169,46 @@ func (c *Client) SnapshotFromMirror(name string, mirror string, description stri
 	return snap, getError(resp)
 }
 
-type DiffPkg struct {
-	Architecture string `json:"architecture"`
-	Name         string `json:"name"`
-	Version      string `json:"version"`
-}
-type PackageDiff struct {
-	Left  DiffPkg `json:"left"`
-	Right DiffPkg `json:"right"`
-}
+// TODO: check API
+// type DiffPkg struct {
+// 	Architecture string `json:"architecture"`
+// 	Name         string `json:"name"`
+// 	Version      string `json:"version"`
+// }
+// type PackageDiff struct {
+// 	Left  DiffPkg `json:"left"`
+// 	Right DiffPkg `json:"right"`
+// }
 
-func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]PackageDiff, error) {
-	var diff []PackageDiff
+// func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]PackageDiff, error) {
+// 	var diff []PackageDiff
 
-	params := make(map[string]string)
+// 	params := make(map[string]string)
 
-	if onlyMatching {
-		params["onlyMatching"] = "1"
-	}
+// 	if onlyMatching {
+// 		params["onlyMatching"] = "1"
+// 	}
 
-	resp, err := c.client.R().
-		SetResult(&diff).
-		SetQueryParams(params).
-		SetPathParam("left", left).
-		SetPathParam("right", right).
-		Get("api/snapshots/{left}/diff/{right}")
+// 	resp, err := c.client.R().
+// 		SetResult(&diff).
+// 		SetQueryParams(params).
+// 		SetPathParam("left", left).
+// 		SetPathParam("right", right).
+// 		Get("api/snapshots/{left}/diff/{right}")
 
-	if err != nil {
-		return diff, err
-	} else if resp.IsSuccess() {
-		return diff, nil
-	}
-	return diff, getError(resp)
-}
+// 	if err != nil {
+// 		return diff, err
+// 	} else if resp.IsSuccess() {
+// 		return diff, nil
+// 	}
+// 	return diff, getError(resp)
+// }
 
 type SnapshotUpdateOptions struct {
 	// new name for the snapshot
-	Name *string `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 	// new description for the snapshot
-	Description *string `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 }
 
 func (c *Client) SnapshotUpdate(name string, opts SnapshotUpdateOptions) (Snapshot, error) {

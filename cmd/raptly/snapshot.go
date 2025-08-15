@@ -11,8 +11,8 @@ type SnapshotCLI struct {
 	Show   SnapshotShowCmd   `kong:"cmd,help='display detailed information about snapshot'"`
 	Create SnapshotCreateCmd `kong:"cmd,help='create snapshot from local repository or mirror'"`
 	Rename SnapshotRenameCmd `kong:"cmd,help='changes name of the snapshot. Snapshot name should be unique'"`
-	Diff   SnapshotDiffCmd   `kong:"cmd,help='displays difference in packages between two snapshots'"`
-	Drop   SnapshotDropCmd   `kong:"cmd,help='removes information about snapshot'"`
+	//Diff   SnapshotDiffCmd   `kong:"cmd,help='displays difference in packages between two snapshots'"`
+	Drop SnapshotDropCmd `kong:"cmd,help='removes information about snapshot'"`
 }
 
 type SnapshotListCmd struct{}
@@ -125,24 +125,24 @@ func (c *SnapshotCreateCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type SnapshotDiffCmd struct {
-	OnlyMatching bool   `kong:"name='only-matching'"`
-	Left         string `kong:"arg"`
-	Right        string `kong:"arg"`
-}
+// type SnapshotDiffCmd struct {
+// 	OnlyMatching bool   `kong:"name='only-matching'"`
+// 	Left         string `kong:"arg"`
+// 	Right        string `kong:"arg"`
+// }
 
-func (c *SnapshotDiffCmd) Run(ctx *Context) error {
-	diffs, err := ctx.client.SnapshotDiff(c.Left, c.Right, c.OnlyMatching)
-	if err != nil {
-		return err
-	}
-	// TODO correct formatting
-	fmt.Print("  Arch   | Package            | Version in A     | Version in B\n")
-	for _, pkgDiff := range diffs {
-		fmt.Printf("  %s | %s | %s | %s", pkgDiff.Left.Architecture, pkgDiff.Left.Name, pkgDiff.Left.Version, pkgDiff.Right.Version)
-	}
-	return nil
-}
+// func (c *SnapshotDiffCmd) Run(ctx *Context) error {
+// 	diffs, err := ctx.client.SnapshotDiff(c.Left, c.Right, c.OnlyMatching)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// TODO correct formatting
+// 	fmt.Print("  Arch   | Package            | Version in A     | Version in B\n")
+// 	for _, pkgDiff := range diffs {
+// 		fmt.Printf("  %s | %s | %s | %s", pkgDiff.Left.Architecture, pkgDiff.Left.Name, pkgDiff.Left.Version, pkgDiff.Right.Version)
+// 	}
+// 	return nil
+// }
 
 type SnapshotRenameCmd struct {
 	OldName string `kong:"arg"`
@@ -150,7 +150,7 @@ type SnapshotRenameCmd struct {
 }
 
 func (c *SnapshotRenameCmd) Run(ctx *Context) error {
-	snap, err := ctx.client.SnapshotUpdate(c.OldName, aptly.SnapshotUpdateOptions{Name: &c.NewName})
+	snap, err := ctx.client.SnapshotUpdate(c.OldName, aptly.SnapshotUpdateOptions{Name: c.NewName})
 	if err != nil {
 		return err
 	}
