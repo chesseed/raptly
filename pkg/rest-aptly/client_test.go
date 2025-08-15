@@ -18,7 +18,6 @@ func TestGetError(t *testing.T) {
 	// Get the underlying HTTP Client and set it to Mock
 	httpmock.ActivateNonDefault(client.GetClient())
 
-	// mock to list out the articles
 	httpmock.RegisterResponder("GET", "http://host.local/json/content-type",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(500, ApiError{Error: "json"})
