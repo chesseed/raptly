@@ -23,21 +23,16 @@ func TestPackagesSearch(t *testing.T) {
 
 	t.Run("without query", func(t *testing.T) {
 		pkgs, err := client.PackagesSearch("")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []string{"pkg1", "pkg2", "pkg3"}, pkgs)
 
 	})
 	t.Run("with query", func(t *testing.T) {
 		pkgs, err := client.PackagesSearch("query")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, []string{"queried1", "queried2", "queried3"}, pkgs)
 
 	})
-}
-
-// helper to assign pointer
-func ptr[T any](v T) *T {
-	return &v
 }
 
 func TestPackagesSearchDetailed(t *testing.T) {
@@ -111,7 +106,7 @@ func TestPackagesSearchDetailed(t *testing.T) {
 	`))
 
 	pkgs, err := client.PackagesSearchDetailed("")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []Package{
 		{
 			Architecture: "amd64",
@@ -168,7 +163,7 @@ func TestPackagesInfo(t *testing.T) {
 	`))
 
 	pkg, err := client.PackagesInfo("Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, Package{
 		Architecture: "amd64",
 		Key:          "Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f",

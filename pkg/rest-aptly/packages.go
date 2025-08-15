@@ -25,7 +25,7 @@ func (opts *ListPackagesOptions) MakeParams() (map[string]string, error) {
 		params["withDeps"] = "1"
 	}
 	if opts.WithDeps {
-		params["maximumVersion "] = "1"
+		params["maximumVersion"] = "1"
 	}
 	return params, nil
 }

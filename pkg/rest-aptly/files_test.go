@@ -20,7 +20,7 @@ func TestFilesListDirs(t *testing.T) {
 		})
 
 	list, err := client.FilesListDirs()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, list, []string{"dir1", "dir2", "dir3"})
 }
 
@@ -33,7 +33,7 @@ func TestFilesListFiles(t *testing.T) {
 		})
 
 	list, err := client.FilesListFiles("dirTest")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, list, []string{"file1", "file2", "file3"})
 }
 
@@ -59,10 +59,10 @@ func TestFilesUpload(t *testing.T) {
 	data1 := "file0 data"
 
 	f1, err := os.CreateTemp("", "file0_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer os.Remove(f1.Name())
 	_, err = f1.WriteString(data1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	httpmock.RegisterResponder("POST", "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
@@ -78,7 +78,7 @@ func TestFilesUpload(t *testing.T) {
 		})
 
 	list, err := client.FilesUpload("dirTest", []string{f1.Name()})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, list, []string{"file0", "extra", "another"})
 }
 
@@ -91,7 +91,7 @@ func TestFilesDeleteDir(t *testing.T) {
 		})
 
 	err := client.FilesDeleteDir("dirTest")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 func TestFilesDeleteFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
@@ -102,5 +102,5 @@ func TestFilesDeleteFile(t *testing.T) {
 		})
 
 	err := client.FilesDeleteFile("dirTest", "file")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }

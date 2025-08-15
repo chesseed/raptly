@@ -33,12 +33,12 @@ func TestGetError(t *testing.T) {
 		})
 
 	resJson, err := client.R().Get("json/content-type")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ErrorContains(t, getError(resJson), "json")
 	resPlain, err := client.R().Get("plain/content-type")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ErrorContains(t, getError(resPlain), "plain")
 	resStatus, err := client.R().Get("invalid")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.ErrorContains(t, getError(resStatus), "unexpected response code 502")
 }

@@ -76,7 +76,7 @@ func TestPublishList(t *testing.T) {
 	`))
 
 	list, err := client.PublishList()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, list, []PublishedList{
 		{
 			Architectures: []string{"amd64", "arm64", "source"},
@@ -133,7 +133,7 @@ func TestPublishShow(t *testing.T) {
 	`))
 
 	published, err := client.PublishShow("bookworm", "snap")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, PublishedList{
 		Architectures: []string{"amd64", "arm64"},
 		Distribution:  "bookworm",
@@ -155,7 +155,7 @@ func TestPublishDrop(t *testing.T) {
 			httpmock.NewStringResponder(200, "ok").Once())
 
 		err := client.PublishDrop("bookworm", "simple", PublishDropOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("with parameters", func(t *testing.T) {
@@ -164,7 +164,7 @@ func TestPublishDrop(t *testing.T) {
 		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
 			httpmock.NewStringResponder(200, "ok").Once())
 		err := client.PublishDrop("bookworm", "params", PublishDropOptions{Force: true, SkipCleanup: true})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	})
 }
 
@@ -205,7 +205,7 @@ func TestPublishRepo(t *testing.T) {
 	`))
 
 	published, err := client.PublishRepo("testing", "prefix", PublishOptions{}, WithoutSigning())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, PublishedList{
 		Architectures: []string{"amd64", "arm64"},
 		Distribution:  "bookworm",

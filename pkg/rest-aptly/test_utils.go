@@ -25,3 +25,8 @@ func clientForTest(t *testing.T, base string) *Client {
 	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 	return client
 }
+
+// helper to assign pointer
+func ptr[T any](v T) *T {
+	return &v
+}
