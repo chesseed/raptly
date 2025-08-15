@@ -14,7 +14,7 @@ func TestVersion(t *testing.T) {
 	httpmock.RegisterResponder("GET", "http://host.local/api/version", newRawJsonResponder(200, `{"Version": "1.5.0"}`))
 	v, err := client.Version()
 	assert.Nil(t, err)
-	assert.Equal(t, v.Version, "1.5.0")
+	assert.Equal(t, "1.5.0", v.Version)
 }
 
 func TestStorageUsage(t *testing.T) {
@@ -25,7 +25,7 @@ func TestStorageUsage(t *testing.T) {
 
 	s, err := client.StorageUsage()
 	assert.Nil(t, err)
-	assert.Equal(t, s.Total, uint64(1000))
-	assert.Equal(t, s.Free, uint64(455))
-	assert.Equal(t, s.PercentFull, float32(55.5))
+	assert.Equal(t, uint64(1000), s.Total)
+	assert.Equal(t, uint64(455), s.Free)
+	assert.Equal(t, float32(55.5), s.PercentFull)
 }
