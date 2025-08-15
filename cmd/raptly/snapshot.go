@@ -41,7 +41,7 @@ func (c *SnapshotShowCmd) Run(ctx *Context) error {
 		return err
 	}
 
-	packages, err := ctx.client.SnapshotPackages(c.Name)
+	packages, err := ctx.client.SnapshotPackages(c.Name, aptly.ListPackagesOptions{})
 	if err != nil {
 		return err
 	}

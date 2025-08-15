@@ -52,23 +52,37 @@ func (c *Client) SnapshotShow(name string) (Snapshot, error) {
 	return snap, getError(resp)
 }
 
-func (c *Client) SnapshotPackages(name string) ([]string, error) {
+func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]string, error) {
+	params, err := opts.MakeParams()
+	if err != nil {
+		return nil, err
+	}
+
 	var pkgs []string
 
-	params := make(map[string]string)
+	resp, err := c.client.R().
+		SetResult(&pkgs).
+		SetPathParam("name", name).
+		SetQueryParams(params).
+		Get("api/snapshots/{name}/packages")
 
-	// if conf.Query == "" && conf.WithDeps.TakeOr(false) {
-	// 	return nil, fmt.Errorf("withDeps requires a query")
-	// }
-	// if conf.Query != "" {
-	// 	params["q"] = conf.Query
-	// }
-	// if conf.WithDeps.TakeOr(false) {
-	// 	params["withDeps"] = "1"
-	// }
-	// if conf.WithDeps.TakeOr(false) {
-	// 	params["maximumVersion "] = "1"
-	// }
+	if err != nil {
+		return pkgs, err
+	} else if resp.IsSuccess() {
+		return pkgs, nil
+	}
+	return pkgs, getError(resp)
+}
+
+func (c *Client) SnapshotPackagesDetailed(name string, opts ListPackagesOptions) ([]Package, error) {
+	params, err := opts.MakeParams()
+	if err != nil {
+		return nil, err
+	}
+	// return object instead of strings
+	params["format"] = "details"
+
+	var pkgs []Package
 
 	resp, err := c.client.R().
 		SetResult(&pkgs).

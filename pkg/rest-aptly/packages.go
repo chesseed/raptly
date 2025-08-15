@@ -1,5 +1,35 @@
 package aptly
 
+import "fmt"
+
+// used in SnapshotPackages(Detailed) and RepoPackages(Detailed)
+type ListPackagesOptions struct {
+	// package query, see https://www.aptly.info/doc/feature/query/
+	Query string
+	// include dependencies when evaluating package query
+	WithDeps bool
+	// return the highest version for each package name
+	MaximumVersion bool
+}
+
+func (opts *ListPackagesOptions) MakeParams() (map[string]string, error) {
+	params := make(map[string]string)
+
+	if opts.Query == "" && opts.WithDeps {
+		return nil, fmt.Errorf("withDeps requires a query")
+	}
+	if opts.Query != "" {
+		params["q"] = opts.Query
+	}
+	if opts.WithDeps {
+		params["withDeps"] = "1"
+	}
+	if opts.WithDeps {
+		params["maximumVersion "] = "1"
+	}
+	return params, nil
+}
+
 type Package struct {
 	Key       string
 	ShortKey  string

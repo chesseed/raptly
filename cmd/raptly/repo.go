@@ -49,8 +49,8 @@ func (c *RepoShowCmd) Run(ctx *Context) error {
 		return err
 	}
 
-	conf := aptly.RepoListPackageOption{}
-	packages, err := ctx.client.ReposListPackages(c.Name, &conf)
+	conf := aptly.ListPackagesOptions{}
+	packages, err := ctx.client.ReposListPackages(c.Name, conf)
 	if err != nil {
 		return err
 	}

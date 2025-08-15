@@ -1,9 +1,5 @@
 package aptly
 
-import (
-	"fmt"
-)
-
 type LocalRepo struct {
 	Comment             string `json:"comment,omitempty"`
 	DefaultComponent    string `json:"defaultComponent,omitempty"`
@@ -99,36 +95,10 @@ func (c *Client) ReposShow(name string) (LocalRepo, error) {
 	return repo, getError(resp)
 }
 
-type RepoListPackageOption struct {
-	Query         string
-	WithDeps      bool
-	NewestVersion bool // maximumVersion in API
-}
-
-func getListPackagesParams(conf *RepoListPackageOption) (map[string]string, error) {
-	params := make(map[string]string)
-
-	if conf != nil {
-		if conf.Query == "" && conf.WithDeps {
-			return nil, fmt.Errorf("withDeps requires a query")
-		}
-		if conf.Query != "" {
-			params["q"] = conf.Query
-		}
-		if conf.WithDeps {
-			params["withDeps"] = "1"
-		}
-		if conf.WithDeps {
-			params["maximumVersion "] = "1"
-		}
-	}
-	return params, nil
-}
-
 // Get list of packages keys
-func (c *Client) ReposListPackages(name string, conf *RepoListPackageOption) ([]string, error) {
+func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]string, error) {
 
-	params, err := getListPackagesParams(conf)
+	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +120,9 @@ func (c *Client) ReposListPackages(name string, conf *RepoListPackageOption) ([]
 }
 
 // Get the list of packages with full information
-func (c *Client) ReposListPackagesDetailed(name string, conf *RepoListPackageOption) ([]Package, error) {
+func (c *Client) ReposListPackagesDetailed(name string, opts ListPackagesOptions) ([]Package, error) {
 
-	params, err := getListPackagesParams(conf)
+	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
