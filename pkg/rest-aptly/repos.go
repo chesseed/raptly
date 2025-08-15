@@ -24,10 +24,10 @@ func (c *Client) ReposList() ([]LocalRepo, error) {
 }
 
 type RepoCreateOptions struct {
-	Comment             *string `json:",omitempty"`
-	DefaultComponent    *string `json:",omitempty"`
-	DefaultDistribution *string `json:",omitempty"`
-	FromSnapshot        *string `json:",omitempty"`
+	Comment             string `json:",omitempty"`
+	DefaultComponent    string `json:",omitempty"`
+	DefaultDistribution string `json:",omitempty"`
+	FromSnapshot        string `json:",omitempty"`
 }
 
 // create new repository
@@ -53,11 +53,11 @@ func (c *Client) ReposCreate(name string, opts RepoCreateOptions) (LocalRepo, er
 }
 
 type RepoUpdateOptions struct {
-	Comment             *string `json:",omitempty"`
-	DefaultComponent    *string `json:",omitempty"`
-	DefaultDistribution *string `json:",omitempty"`
+	Comment             string `json:",omitempty"`
+	DefaultComponent    string `json:",omitempty"`
+	DefaultDistribution string `json:",omitempty"`
 	// new repository name
-	Name *string `json:",omitempty"`
+	Name string `json:",omitempty"`
 }
 
 // edit/update existing repository
@@ -251,7 +251,7 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 
 	params := make(map[string]string)
 	if opts.NoRemove {
-		params["noRemove"] = "1"
+		params["noRemoveFiles"] = "1"
 	}
 	if opts.ForceReplace {
 		params["forceReplace"] = "1"
@@ -286,7 +286,7 @@ func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoI
 
 	params := make(map[string]string)
 	if opts.NoRemove {
-		params["noRemove"] = "1"
+		params["noRemoveFiles"] = "1"
 	}
 	if opts.ForceReplace {
 		params["forceReplace"] = "1"
