@@ -6,6 +6,8 @@ CLI tool to manage aptly repositories via their REST API. The commands are simil
 
 All flags use the long form with double hyphen `--` instead of single hypen `-`
 
+The `passphrase-file` option for publishing seaches the filesystem of the local machine, to use the server's filesystem use `remote-passphrase-file`
+
 ## Currently not implemented
 
 * signing options
