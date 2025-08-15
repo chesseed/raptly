@@ -21,7 +21,7 @@ func TestEscapePrefix(t *testing.T) {
 func TestPublishList(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/publish",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/publish",
 		newRawJsonResponder(200, `
 [
 	{
@@ -105,7 +105,7 @@ func TestPublishList(t *testing.T) {
 func TestPublishShow(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("GET", "http://host.local/api/publish/snap/bookworm",
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/publish/snap/bookworm",
 		newRawJsonResponder(200, `
 {
 	"AcquireByHash": false,
@@ -152,7 +152,7 @@ func TestPublishDrop(t *testing.T) {
 	t.Run("without parameters", func(t *testing.T) {
 		client := clientForTest(t, "http://host.local")
 
-		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/simple/bookworm", map[string]string{},
+		httpmock.RegisterResponderWithQuery(http.MethodDelete, "http://host.local/api/publish/simple/bookworm", map[string]string{},
 			httpmock.NewStringResponder(200, "ok").Once())
 
 		err := client.PublishDrop("bookworm", "simple", PublishDropOptions{})
@@ -162,7 +162,7 @@ func TestPublishDrop(t *testing.T) {
 	t.Run("with parameters", func(t *testing.T) {
 		client := clientForTest(t, "http://host.local")
 
-		httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
+		httpmock.RegisterResponderWithQuery(http.MethodDelete, "http://host.local/api/publish/params/bookworm", map[string]string{"force": "1", "skipCleanup": "1"},
 			httpmock.NewStringResponder(200, "ok").Once())
 		err := client.PublishDrop("bookworm", "params", PublishDropOptions{Force: true, SkipCleanup: true})
 		assert.NoError(t, err)

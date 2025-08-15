@@ -85,7 +85,7 @@ func TestFilesUpload(t *testing.T) {
 func TestFilesDeleteDir(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("DELETE", "http://host.local/api/files/dirTest",
+	httpmock.RegisterResponder(http.MethodDelete, "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(200, ""), nil
 		})
@@ -96,7 +96,7 @@ func TestFilesDeleteDir(t *testing.T) {
 func TestFilesDeleteFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("DELETE", "http://host.local/api/files/dirTest/file",
+	httpmock.RegisterResponder(http.MethodDelete, "http://host.local/api/files/dirTest/file",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(200, ""), nil
 		})

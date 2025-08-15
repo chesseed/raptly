@@ -287,8 +287,8 @@ func TestReposListPackagesDetailed(t *testing.T) {
 func TestReposDrop(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder("DELETE", "http://host.local/api/repos/testRepo", httpmock.NewStringResponder(200, "ok"))
-	httpmock.RegisterResponderWithQuery("DELETE", "http://host.local/api/repos/testForces", map[string]string{"force": "1"}, httpmock.NewStringResponder(200, "ok"))
+	httpmock.RegisterResponder(http.MethodDelete, "http://host.local/api/repos/testRepo", httpmock.NewStringResponder(200, "ok"))
+	httpmock.RegisterResponderWithQuery(http.MethodDelete, "http://host.local/api/repos/testForces", map[string]string{"force": "1"}, httpmock.NewStringResponder(200, "ok"))
 
 	err := client.ReposDrop("testRepo", false)
 	assert.NoError(t, err)
