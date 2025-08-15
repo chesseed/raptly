@@ -79,9 +79,9 @@ type RepoCreateCmd struct {
 
 func (c *RepoCreateCmd) Run(ctx *Context) error {
 	opts := aptly.RepoCreateOptions{
-		Comment:             c.Comment,
-		DefaultComponent:    c.Component,
-		DefaultDistribution: c.Distribution,
+		Comment:             *c.Comment,
+		DefaultComponent:    *c.Component,
+		DefaultDistribution: *c.Distribution,
 	}
 
 	repo, err := ctx.client.ReposCreate(c.Name, opts)
@@ -102,9 +102,9 @@ type RepoEditCmd struct {
 
 func (c *RepoEditCmd) Run(ctx *Context) error {
 	opts := aptly.RepoUpdateOptions{
-		Comment:             c.Comment,
-		DefaultComponent:    c.Component,
-		DefaultDistribution: c.Distribution,
+		Comment:             *c.Comment,
+		DefaultComponent:    *c.Component,
+		DefaultDistribution: *c.Distribution,
 	}
 
 	repo, err := ctx.client.ReposEdit(c.Name, opts)
@@ -123,7 +123,7 @@ type RepoRenameCmd struct {
 
 func (c *RepoRenameCmd) Run(ctx *Context) error {
 	opts := aptly.RepoUpdateOptions{
-		Name: &c.NewName,
+		Name: c.NewName,
 	}
 
 	repo, err := ctx.client.ReposEdit(c.Name, opts)
