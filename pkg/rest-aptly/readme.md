@@ -6,7 +6,7 @@ WIP
 
 * mirror API
 * repo import/copy/move/remove/search
-* snapshot verify/pull/filter/merge/search
+* snapshot verify/pull/filter
 * db API
 * task API
 

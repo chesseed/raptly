@@ -312,3 +312,41 @@ func TestSnapshotUpdate(t *testing.T) {
 		},
 	}, snap)
 }
+
+func TestSnapshotMerge(t *testing.T) {
+	client := clientForTest(t, "http://host.local")
+
+	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/api/snapshots/snapMerged/merge",
+		tdhttpmock.JSONBody(td.JSON(`
+{
+	"Sources": ["snap1","snap2","snap3"]
+}
+		`)),
+		newRawJsonResponder(201, `
+{
+    "Name": "snapMerged",
+    "CreatedAt": "2025-08-16T23:31:39.54837804+02:00",
+    "SourceKind": "snapshot",
+    "Description": "Merged from sources: 'snap1', 'snap2', 'snap3'",
+    "Origin": "",
+    "NotAutomatic": "",
+    "ButAutomaticUpgrades": ""
+}
+	`))
+
+	// invalid options
+	_, err := client.SnapshotMerge("snapMerged", []string{"snap1", "snap2", "snap3"}, SnapshotMergeOptions{Latest: true, NoRemove: true})
+	assert.Error(t, err)
+	// empty list
+	_, err = client.SnapshotMerge("snapMerged", []string{}, SnapshotMergeOptions{})
+	assert.Error(t, err)
+
+	snap, err := client.SnapshotMerge("snapMerged", []string{"snap1", "snap2", "snap3"}, SnapshotMergeOptions{})
+	assert.NoError(t, err)
+	assert.Equal(t, Snapshot{
+		Name:        "snapMerged",
+		CreatedAt:   "2025-08-16T23:31:39.54837804+02:00",
+		SourceKind:  "snapshot",
+		Description: "Merged from sources: 'snap1', 'snap2', 'snap3'",
+	}, snap)
+}

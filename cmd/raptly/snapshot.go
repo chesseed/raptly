@@ -7,17 +7,18 @@ import (
 )
 
 type SnapshotCLI struct {
-	List   SnapshotListCmd   `kong:"cmd,help='get list of all created snapshots'"`
-	Show   SnapshotShowCmd   `kong:"cmd,help='display detailed information about snapshot'"`
-	Create SnapshotCreateCmd `kong:"cmd,help='create snapshot from local repository or mirror'"`
-	Rename SnapshotRenameCmd `kong:"cmd,help='changes name of the snapshot. Snapshot name should be unique'"`
+	List   snapshotListCmd   `kong:"cmd,help='get list of all created snapshots'"`
+	Show   snapshotShowCmd   `kong:"cmd,help='display detailed information about snapshot'"`
+	Create snapshotCreateCmd `kong:"cmd,help='create snapshot from local repository or mirror'"`
+	Rename snapshotRenameCmd `kong:"cmd,help='changes name of the snapshot. Snapshot name should be unique'"`
 	//Diff   SnapshotDiffCmd   `kong:"cmd,help='displays difference in packages between two snapshots'"`
-	Drop SnapshotDropCmd `kong:"cmd,help='removes information about snapshot'"`
+	Drop  snapshotDropCmd  `kong:"cmd,help='removes information about snapshot'"`
+	Merge snapshotMergeCmd `kong:"cmd,help='merges several source snapshots into new destination snapshot'"`
 }
 
-type SnapshotListCmd struct{}
+type snapshotListCmd struct{}
 
-func (c *SnapshotListCmd) Run(ctx *Context) error {
+func (c *snapshotListCmd) Run(ctx *Context) error {
 	snaps, err := ctx.client.SnapshotList()
 	if err != nil {
 		return err
@@ -30,12 +31,12 @@ func (c *SnapshotListCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type SnapshotShowCmd struct {
+type snapshotShowCmd struct {
 	Name         string `kong:"arg"`
 	WithPackages bool   `kong:"name='with-packages'"`
 }
 
-func (c *SnapshotShowCmd) Run(ctx *Context) error {
+func (c *snapshotShowCmd) Run(ctx *Context) error {
 	snap, err := ctx.client.SnapshotShow(c.Name)
 	if err != nil {
 		return err
@@ -77,12 +78,12 @@ func (c *SnapshotShowCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type SnapshotDropCmd struct {
+type snapshotDropCmd struct {
 	Force bool   `kong:"help='drop snapshot even if it used as source in other snapshots'"`
 	Name  string `kong:"arg"`
 }
 
-func (c *SnapshotDropCmd) Run(ctx *Context) error {
+func (c *snapshotDropCmd) Run(ctx *Context) error {
 	err := ctx.client.SnapshotDrop(c.Name, c.Force)
 	if err != nil {
 		return err
@@ -92,7 +93,7 @@ func (c *SnapshotDropCmd) Run(ctx *Context) error {
 	return nil
 }
 
-type SnapshotCreateCmd struct {
+type snapshotCreateCmd struct {
 	Name struct {
 		Name string `kong:"arg"`
 		From struct {
@@ -106,7 +107,7 @@ type SnapshotCreateCmd struct {
 	} `kong:"arg"`
 }
 
-func (c *SnapshotCreateCmd) Run(ctx *Context) error {
+func (c *snapshotCreateCmd) Run(ctx *Context) error {
 	if c.Name.From.Repo.Repo != nil {
 		snap, err := ctx.client.SnapshotFromRepo(c.Name.Name, *c.Name.From.Repo.Repo, "")
 		if err != nil {
@@ -144,16 +145,32 @@ func (c *SnapshotCreateCmd) Run(ctx *Context) error {
 // 	return nil
 // }
 
-type SnapshotRenameCmd struct {
+type snapshotRenameCmd struct {
 	OldName string `kong:"arg"`
 	NewName string `kong:"arg"`
 }
 
-func (c *SnapshotRenameCmd) Run(ctx *Context) error {
+func (c *snapshotRenameCmd) Run(ctx *Context) error {
 	snap, err := ctx.client.SnapshotUpdate(c.OldName, aptly.SnapshotUpdateOptions{Name: c.NewName})
 	if err != nil {
 		return err
 	}
 	fmt.Printf("Snapshot %s -> %s has been successfully renamed.\n", c.OldName, snap.Name)
+	return nil
+}
+
+type snapshotMergeCmd struct {
+	Destination string   `kong:"arg"`
+	Sources     []string `kong:"arg"`
+	Latest      bool     `kong:"name='latest'"`
+	NoRemove    bool     `kong:"name='no-remove'"`
+}
+
+func (c *snapshotMergeCmd) Run(ctx *Context) error {
+	snap, err := ctx.client.SnapshotMerge(c.Destination, c.Sources, aptly.SnapshotMergeOptions{Latest: c.Latest, NoRemove: c.NoRemove})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Snapshot %s successfully created.\n", snap.Name)
 	return nil
 }

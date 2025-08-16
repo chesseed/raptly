@@ -1,5 +1,7 @@
 package aptly
 
+import "fmt"
+
 // Snapshot is immutable state of repository: list of packages
 type Snapshot struct {
 	// Human-readable name
@@ -218,6 +220,49 @@ func (c *Client) SnapshotUpdate(name string, opts SnapshotUpdateOptions) (Snapsh
 		SetPathParam("name", name).
 		SetBody(&opts).
 		Put("api/snapshots/{name}")
+	if err != nil {
+		return snap, err
+	} else if resp.IsSuccess() {
+		return snap, nil
+	}
+	return snap, getError(resp)
+}
+
+type SnapshotMergeOptions struct {
+	// use only the latest version of each package
+	Latest bool
+	// don’t remove duplicate arch/name packages
+	NoRemove bool
+}
+
+// since aptly 1.6.0
+func (c *Client) SnapshotMerge(destination string, sources []string, opts SnapshotMergeOptions) (Snapshot, error) {
+	var snap Snapshot
+	type mergeRequest struct {
+		Sources []string
+	}
+	// check for simple errors before hitting the server
+	if len(sources) == 0 {
+		return snap, fmt.Errorf("minimum one source snapshot is required")
+	}
+	if opts.Latest && opts.NoRemove {
+		return snap, fmt.Errorf("minimum one source snapshot is required")
+	}
+
+	params := make(map[string]string)
+	if opts.Latest {
+		params["latest"] = "1"
+	}
+	if opts.NoRemove {
+		params["no-remove"] = "1"
+	}
+
+	resp, err := c.client.R().
+		SetResult(&snap).
+		SetPathParam("name", destination).
+		SetQueryParams(params).
+		SetBody(&mergeRequest{Sources: sources}).
+		Post("api/snapshots/{name}/merge")
 	if err != nil {
 		return snap, err
 	} else if resp.IsSuccess() {
