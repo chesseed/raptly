@@ -32,8 +32,8 @@ func (c *snapshotListCmd) Run(ctx *Context) error {
 }
 
 type snapshotShowCmd struct {
-	Name         string `kong:"arg"`
-	WithPackages bool   `kong:"name='with-packages'"`
+	Name         string `kong:"arg,help='snapshot name which has been given during snapshot creation'"`
+	WithPackages bool   `kong:"name='with-packages',help='show detailed list of packages and versions stored in the mirror'"`
 }
 
 func (c *snapshotShowCmd) Run(ctx *Context) error {
@@ -80,7 +80,7 @@ func (c *snapshotShowCmd) Run(ctx *Context) error {
 
 type snapshotDropCmd struct {
 	Force bool   `kong:"help='drop snapshot even if it used as source in other snapshots'"`
-	Name  string `kong:"arg"`
+	Name  string `kong:"arg,help='snapshot name which has been given during snapshot creation'"`
 }
 
 func (c *snapshotDropCmd) Run(ctx *Context) error {
@@ -95,13 +95,13 @@ func (c *snapshotDropCmd) Run(ctx *Context) error {
 
 type snapshotCreateCmd struct {
 	Name struct {
-		Name string `kong:"arg"`
+		Name string `kong:"arg,help='name for the snapshot to be created'"`
 		From struct {
 			Repo struct {
-				Repo *string `kong:"arg"`
+				Repo *string `kong:"arg,help='local repository name to snapshot'"`
 			} `kong:"cmd"`
 			Mirror struct {
-				Mirror *string `kong:"arg"`
+				Mirror *string `kong:"arg,help='mirror name to snapshot'"`
 			} `kong:"cmd"`
 		} `kong:"cmd"`
 	} `kong:"arg"`
@@ -146,8 +146,8 @@ func (c *snapshotCreateCmd) Run(ctx *Context) error {
 // }
 
 type snapshotRenameCmd struct {
-	OldName string `kong:"arg"`
-	NewName string `kong:"arg"`
+	OldName string `kong:"arg,help='current snapshot name'"`
+	NewName string `kong:"arg,help='new snapshot name'"`
 }
 
 func (c *snapshotRenameCmd) Run(ctx *Context) error {
@@ -160,10 +160,10 @@ func (c *snapshotRenameCmd) Run(ctx *Context) error {
 }
 
 type snapshotMergeCmd struct {
-	Destination string   `kong:"arg"`
-	Sources     []string `kong:"arg"`
-	Latest      bool     `kong:"name='latest'"`
-	NoRemove    bool     `kong:"name='no-remove'"`
+	Destination string   `kong:"arg,help='name of the snapshot that would be created'"`
+	Sources     []string `kong:"arg,help='list of snapshot names that would be merged together'"`
+	Latest      bool     `kong:"name='latest',help='use only the latest version of each package'"`
+	NoRemove    bool     `kong:"name='no-remove',help='don’t remove duplicate arch/name packages'"`
 }
 
 func (c *snapshotMergeCmd) Run(ctx *Context) error {
