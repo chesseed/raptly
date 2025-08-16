@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	aptly "raptly/pkg/rest-aptly"
 )
@@ -99,30 +98,29 @@ type snapshotCreateCmd struct {
 		From struct {
 			Repo struct {
 				Repo *string `kong:"arg,help='local repository name to snapshot'"`
-			} `kong:"cmd"`
+			} `kong:"cmd,help='create snapshot from current state of local package repository'"`
 			Mirror struct {
 				Mirror *string `kong:"arg,help='mirror name to snapshot'"`
-			} `kong:"cmd"`
+			} `kong:"cmd,help='create snapshot from current state of remote mirror'"`
 		} `kong:"cmd"`
+		Empty struct{} `kong:"cmd,help='create empty snapshot'"`
 	} `kong:"arg"`
 }
 
 func (c *snapshotCreateCmd) Run(ctx *Context) error {
+	var snap aptly.Snapshot
+	var err error
 	if c.Name.From.Repo.Repo != nil {
-		snap, err := ctx.client.SnapshotFromRepo(c.Name.Name, *c.Name.From.Repo.Repo, "")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Snapshot '%s' successfully created.\n", snap.Name)
+		snap, err = ctx.client.SnapshotFromRepo(c.Name.Name, *c.Name.From.Repo.Repo, "")
 	} else if c.Name.From.Mirror.Mirror != nil {
-		snap, err := ctx.client.SnapshotFromMirror(c.Name.Name, *c.Name.From.Mirror.Mirror, "")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Snapshot '%s' successfully created.\n", snap.Name)
+		snap, err = ctx.client.SnapshotFromMirror(c.Name.Name, *c.Name.From.Mirror.Mirror, "")
 	} else {
-		return errors.New("unhandled case in create")
+		snap, err = ctx.client.SnapshotCreate(c.Name.Name, aptly.SnapshotCreateOptions{})
 	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Snapshot '%s' successfully created.\n", snap.Name)
 	return nil
 }
 

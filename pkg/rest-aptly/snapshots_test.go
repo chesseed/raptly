@@ -350,3 +350,34 @@ func TestSnapshotMerge(t *testing.T) {
 		Description: "Merged from sources: 'snap1', 'snap2', 'snap3'",
 	}, snap)
 }
+
+func TestSnapshotCreate(t *testing.T) {
+	client := clientForTest(t, "http://host.local")
+
+	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/api/snapshots",
+		tdhttpmock.JSONBody(td.JSON(`
+{
+	"Name": "snapEmpty"
+}
+		`)),
+		newRawJsonResponder(201, `
+{
+	"Name": "snapEmpty",
+	"CreatedAt": "2025-08-16T22:05:30.477336537Z",
+	"SourceKind": "snapshot",
+	"Description": "Created as empty",
+	"Origin": "",
+	"NotAutomatic": "",
+	"ButAutomaticUpgrades": ""
+}
+	`))
+
+	snap, err := client.SnapshotCreate("snapEmpty", SnapshotCreateOptions{})
+	assert.NoError(t, err)
+	assert.Equal(t, Snapshot{
+		Name:        "snapEmpty",
+		CreatedAt:   "2025-08-16T22:05:30.477336537Z",
+		SourceKind:  "snapshot",
+		Description: "Created as empty",
+	}, snap)
+}

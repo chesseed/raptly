@@ -171,6 +171,40 @@ func (c *Client) SnapshotFromMirror(name string, mirror string, description stri
 	return snap, getError(resp)
 }
 
+type SnapshotCreateOptions struct {
+	// Description for the snapshot
+	Description string
+	// List of source snapshots
+	PackageRefs []string
+	// List of package refs
+	SourceSnapshots []string
+}
+
+func (c *Client) SnapshotCreate(name string, opts SnapshotCreateOptions) (Snapshot, error) {
+	var snap Snapshot
+
+	type createParam struct {
+		Name            string   `json:"Name"`
+		Description     string   `json:"Description,omitempty"`
+		PackageRefs     []string `json:"PackageRefs,omitempty"`
+		SourceSnapshots []string `json:"SourceSnapshots,omitempty"`
+	}
+
+	resp, err := c.client.R().
+		SetResult(&snap).
+		SetBody(createParam{
+			Name: name, Description: opts.Description, PackageRefs: opts.PackageRefs, SourceSnapshots: opts.SourceSnapshots,
+		}).
+		Post("api/snapshots")
+
+	if err != nil {
+		return snap, err
+	} else if resp.IsSuccess() {
+		return snap, nil
+	}
+	return snap, getError(resp)
+}
+
 // TODO: check API
 // type DiffPkg struct {
 // 	Architecture string `json:"architecture"`
