@@ -14,13 +14,13 @@ type PkgSearchCmd struct {
 }
 
 func (c *PkgSearchCmd) Run(ctx *Context) error {
-	pkgs, err := ctx.client.PackagesSearch(c.Query)
+	pkgs, err := ctx.client.PackagesSearch(c.Query, false)
 	if err != nil {
 		return err
 	}
 
 	for _, pkg := range pkgs {
-		fmt.Printf("%s\n", pkg)
+		fmt.Printf("%s\n", pkg.Key)
 	}
 	return nil
 }

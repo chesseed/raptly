@@ -54,50 +54,21 @@ func (c *Client) SnapshotShow(name string) (Snapshot, error) {
 	return snap, getError(resp)
 }
 
-func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]string, error) {
+func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]Package, error) {
 	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
 
-	var pkgs []string
-
 	resp, err := c.client.R().
-		SetResult(&pkgs).
 		SetPathParam("name", name).
 		SetQueryParams(params).
 		Get("api/snapshots/{name}/packages")
 
-	if err != nil {
-		return pkgs, err
-	} else if resp.IsSuccess() {
-		return pkgs, nil
-	}
-	return pkgs, getError(resp)
-}
-
-func (c *Client) SnapshotPackagesDetailed(name string, opts ListPackagesOptions) ([]Package, error) {
-	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
-	// return object instead of strings
-	params["format"] = "details"
-
-	var pkgs []Package
-
-	resp, err := c.client.R().
-		SetResult(&pkgs).
-		SetPathParam("name", name).
-		SetQueryParams(params).
-		Get("api/snapshots/{name}/packages")
-
-	if err != nil {
-		return pkgs, err
-	} else if resp.IsSuccess() {
-		return pkgs, nil
-	}
-	return pkgs, getError(resp)
+	return responseToPackages(resp, opts.Detailed)
 }
 
 func (c *Client) SnapshotDrop(name string, force bool) error {

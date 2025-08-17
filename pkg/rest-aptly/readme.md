@@ -36,3 +36,7 @@ type Context struct {
     client *aptly.Client
 }
 ```
+
+## TODO
+
+* Find all API differences between 1.5.0 and 1.6.0

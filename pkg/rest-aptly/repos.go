@@ -96,53 +96,22 @@ func (c *Client) ReposShow(name string) (LocalRepo, error) {
 }
 
 // Get list of packages keys
-func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]string, error) {
+func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Package, error) {
 
 	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
 
-	var packages []string
-
 	resp, err := c.client.R().
 		SetPathParam("name", name).
 		SetQueryParams(params).
-		SetResult(&packages).
 		Get("api/repos/{name}/packages")
 
-	if err != nil {
-		return packages, err
-	} else if resp.IsSuccess() {
-		return packages, nil
-	}
-	return packages, getError(resp)
-}
-
-// Get the list of packages with full information
-func (c *Client) ReposListPackagesDetailed(name string, opts ListPackagesOptions) ([]Package, error) {
-
-	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
 	}
-	// return object instead of strings
-	params["format"] = "details"
-
-	var packages []Package
-
-	resp, err := c.client.R().
-		SetPathParam("name", name).
-		SetQueryParams(params).
-		SetResult(&packages).
-		Get("api/repos/{name}/packages")
-
-	if err != nil {
-		return packages, err
-	} else if resp.IsSuccess() {
-		return packages, nil
-	}
-	return packages, getError(resp)
+	return responseToPackages(resp, opts.Detailed)
 }
 
 // Remove the repository
