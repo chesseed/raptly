@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	aptly "raptly/pkg/rest-aptly"
+	"strings"
+	"unicode/utf8"
 )
 
 type SnapshotCLI struct {
@@ -10,9 +12,9 @@ type SnapshotCLI struct {
 	Show   snapshotShowCmd   `kong:"cmd,help='display detailed information about snapshot'"`
 	Create snapshotCreateCmd `kong:"cmd,help='create snapshot from local repository or mirror'"`
 	Rename snapshotRenameCmd `kong:"cmd,help='changes name of the snapshot. Snapshot name should be unique'"`
-	//Diff   SnapshotDiffCmd   `kong:"cmd,help='displays difference in packages between two snapshots'"`
-	Drop  snapshotDropCmd  `kong:"cmd,help='removes information about snapshot'"`
-	Merge snapshotMergeCmd `kong:"cmd,help='merges several source snapshots into new destination snapshot'"`
+	Diff   SnapshotDiffCmd   `kong:"cmd,help='displays difference in packages between two snapshots'"`
+	Drop   snapshotDropCmd   `kong:"cmd,help='removes information about snapshot'"`
+	Merge  snapshotMergeCmd  `kong:"cmd,help='merges several source snapshots into new destination snapshot'"`
 }
 
 type snapshotListCmd struct{}
@@ -124,24 +126,103 @@ func (c *snapshotCreateCmd) Run(ctx *Context) error {
 	return nil
 }
 
-// type SnapshotDiffCmd struct {
-// 	OnlyMatching bool   `kong:"name='only-matching'"`
-// 	Left         string `kong:"arg"`
-// 	Right        string `kong:"arg"`
-// }
+type SnapshotDiffCmd struct {
+	OnlyMatching bool   `kong:"name='only-matching',help='display diff only for package versions (don’t display missing packages)'"`
+	Left         string `kong:"arg,help='snapshot name which is “on the left” during comparison'"`
+	Right        string `kong:"arg,help='snapshot name which is “on the right” during comparison'"`
+}
 
-// func (c *SnapshotDiffCmd) Run(ctx *Context) error {
-// 	diffs, err := ctx.client.SnapshotDiff(c.Left, c.Right, c.OnlyMatching)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// TODO correct formatting
-// 	fmt.Print("  Arch   | Package            | Version in A     | Version in B\n")
-// 	for _, pkgDiff := range diffs {
-// 		fmt.Printf("  %s | %s | %s | %s", pkgDiff.Left.Architecture, pkgDiff.Left.Name, pkgDiff.Left.Version, pkgDiff.Right.Version)
-// 	}
-// 	return nil
-// }
+func padToWidth(str string, width int) string {
+	runes := utf8.RuneCountInString(str)
+	if runes < width {
+		return str + strings.Repeat(" ", width-runes)
+	}
+	return str
+}
+
+func (c *SnapshotDiffCmd) Run(ctx *Context) error {
+	diffs, err := ctx.client.SnapshotDiff(c.Left, c.Right, c.OnlyMatching)
+	if err != nil {
+		return err
+	}
+
+	if len(diffs) == 0 {
+		fmt.Println("Snapshots are identical.")
+		return nil
+	}
+	// minimum widths
+	const (
+		minArch    = 4  // len 'Arch'
+		minPackage = 7  // len 'Package'
+		minA       = 12 // len 'Version in A'
+		minB       = 12 // len 'Version in B'
+	)
+	widthArch := minArch
+	widthPackage := minPackage
+	widthA := minA
+	widthB := minB
+
+	for _, pkgDiff := range diffs {
+		if pkgDiff.Left != nil {
+			widthArch = max(widthArch, utf8.RuneCountInString(pkgDiff.Left.Architecture))
+			widthPackage = max(widthPackage, utf8.RuneCountInString(pkgDiff.Left.Package))
+			widthA = max(widthA, utf8.RuneCountInString(pkgDiff.Left.Version))
+		}
+		if pkgDiff.Right != nil {
+			widthArch = max(widthArch, utf8.RuneCountInString(pkgDiff.Right.Architecture))
+			widthPackage = max(widthPackage, utf8.RuneCountInString(pkgDiff.Right.Package))
+			widthB = max(widthB, utf8.RuneCountInString(pkgDiff.Right.Version))
+		}
+	}
+
+	fmt.Printf("  %s | %s | %s | %s\n",
+		padToWidth("Arch", widthArch),
+		padToWidth("Package", widthPackage),
+		padToWidth("Version in A", widthA),
+		padToWidth("Version in B", widthB),
+	)
+	for _, pkgDiff := range diffs {
+
+		// '!' for different version, '-' for missing, '+' for added
+		indicator := "!"
+		if pkgDiff.Left == nil {
+			indicator = "+"
+		} else if pkgDiff.Right == nil {
+			indicator = "-"
+		}
+		arch := ""
+		if pkgDiff.Left != nil {
+			arch = pkgDiff.Left.Architecture
+		} else {
+			arch = pkgDiff.Right.Architecture
+		}
+
+		pkg := ""
+		if pkgDiff.Left != nil {
+			pkg = pkgDiff.Left.Package
+		} else {
+			pkg = pkgDiff.Right.Package
+		}
+
+		a := "-"
+		if pkgDiff.Left != nil {
+			a = pkgDiff.Left.Version
+		}
+		b := "-"
+		if pkgDiff.Right != nil {
+			b = pkgDiff.Right.Version
+		}
+
+		fmt.Printf("%s %s | %s | %s | %s\n",
+			indicator,
+			padToWidth(arch, widthArch),
+			padToWidth(pkg, widthPackage),
+			padToWidth(a, widthA),
+			padToWidth(b, widthB),
+		)
+	}
+	return nil
+}
 
 type snapshotRenameCmd struct {
 	OldName string `kong:"arg,help='current snapshot name'"`

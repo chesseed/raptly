@@ -176,40 +176,59 @@ func (c *Client) SnapshotCreate(name string, opts SnapshotCreateOptions) (Snapsh
 	return snap, getError(resp)
 }
 
-// TODO: check API
-// type DiffPkg struct {
-// 	Architecture string `json:"architecture"`
-// 	Name         string `json:"name"`
-// 	Version      string `json:"version"`
-// }
-// type PackageDiff struct {
-// 	Left  DiffPkg `json:"left"`
-// 	Right DiffPkg `json:"right"`
-// }
+type PackageDiff struct {
+	Left  *Package
+	Right *Package
+}
 
-// func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]PackageDiff, error) {
-// 	var diff []PackageDiff
+func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]PackageDiff, error) {
 
-// 	params := make(map[string]string)
+	params := make(map[string]string)
+	if onlyMatching {
+		params["onlyMatching"] = "1"
+	}
 
-// 	if onlyMatching {
-// 		params["onlyMatching"] = "1"
-// 	}
+	type pkgDiff struct {
+		Left  *string
+		Right *string
+	}
+	var diffs []pkgDiff
 
-// 	resp, err := c.client.R().
-// 		SetResult(&diff).
-// 		SetQueryParams(params).
-// 		SetPathParam("left", left).
-// 		SetPathParam("right", right).
-// 		Get("api/snapshots/{left}/diff/{right}")
+	resp, err := c.client.R().
+		SetResult(&diffs).
+		SetQueryParams(params).
+		SetPathParam("left", left).
+		SetPathParam("right", right).
+		Get("api/snapshots/{left}/diff/{right}")
 
-// 	if err != nil {
-// 		return diff, err
-// 	} else if resp.IsSuccess() {
-// 		return diff, nil
-// 	}
-// 	return diff, getError(resp)
-// }
+	if err != nil {
+		return nil, err
+	} else if resp.IsSuccess() {
+		diff := make([]PackageDiff, 0, len(diffs))
+
+		for _, d := range diffs {
+			var left, right *Package
+
+			if d.Left != nil {
+				leftPkg, err := PackageFromKey(*d.Left)
+				if err != nil {
+					return nil, err
+				}
+				left = &leftPkg
+			}
+			if d.Right != nil {
+				rightPkg, err := PackageFromKey(*d.Right)
+				if err != nil {
+					return nil, err
+				}
+				right = &rightPkg
+			}
+			diff = append(diff, PackageDiff{Left: left, Right: right})
+		}
+		return diff, nil
+	}
+	return nil, getError(resp)
+}
 
 type SnapshotUpdateOptions struct {
 	// new name for the snapshot

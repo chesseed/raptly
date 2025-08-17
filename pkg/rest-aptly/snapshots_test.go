@@ -169,9 +169,73 @@ func TestSnapshotFromRepo(t *testing.T) {
 // 	assert.Fail(t, "todo")
 // }
 
-// func TestSnapshotDiff(t *testing.T) {
-// 	assert.Fail(t, "todo")
-// }
+func TestSnapshotDiff(t *testing.T) {
+	client := clientForTest(t, "http://host.local")
+
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/snapshots/snap1/diff/snap2",
+		newRawJsonResponder(200, `
+[
+    {
+        "Left": "Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f",
+        "Right": null
+    },
+    {
+        "Left": "Pamd64 hello-dbgsym 3.0.0-2 185cc47ca86a934c",
+        "Right": null
+    },
+    {
+        "Left": "Psource hello 3.0.0-2 571d33f41765ddba",
+        "Right": null
+	},
+	{
+		"Left": null,
+		"Right": "Pamd64 nano 7.2-1+deb12u1 c5d2ac1639544e75"
+	}
+]
+	`))
+
+	diff, err := client.SnapshotDiff("snap1", "snap2", false)
+	assert.NoError(t, err)
+	assert.Equal(t, []PackageDiff{
+		{
+			Left: &Package{
+				Key:          "Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f",
+				Architecture: "amd64",
+				Package:      "hello",
+				Version:      "3.0.0-2",
+				FilesHash:    "96e8a0deaf8fc95f",
+			},
+		},
+		{
+			Left: &Package{
+				Key:          "Pamd64 hello-dbgsym 3.0.0-2 185cc47ca86a934c",
+				Architecture: "amd64",
+				Package:      "hello-dbgsym",
+				Version:      "3.0.0-2",
+				FilesHash:    "185cc47ca86a934c",
+			},
+		},
+		{
+			Left: &Package{
+				Key:          "Psource hello 3.0.0-2 571d33f41765ddba",
+				Architecture: "source",
+				Package:      "hello",
+				Version:      "3.0.0-2",
+				FilesHash:    "571d33f41765ddba",
+			},
+		},
+		{
+			Right: &Package{
+				Key:          "Pamd64 nano 7.2-1+deb12u1 c5d2ac1639544e75",
+				Architecture: "amd64",
+				Package:      "nano",
+				Version:      "7.2-1+deb12u1",
+				FilesHash:    "c5d2ac1639544e75",
+			},
+		},
+	}, diff)
+
+}
 
 func TestSnapshotUpdate(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
