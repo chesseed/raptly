@@ -70,7 +70,7 @@ func (c *snapshotShowCmd) Run(ctx *Context) error {
 	if c.WithPackages {
 		fmt.Print("Packages:\n")
 		for _, pkg := range packages {
-			fmt.Printf("  %v\n", pkg)
+			fmt.Printf("  %s\n", pkg.Key)
 		}
 	}
 

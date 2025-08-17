@@ -62,7 +62,7 @@ func (c *RepoShowCmd) Run(ctx *Context) error {
 	fmt.Printf("Number of packages: %v\n", len(packages))
 	if c.WithPackages {
 		for _, pkg := range packages {
-			fmt.Printf("  %v\n", pkg)
+			fmt.Printf("  %s\n", pkg.Key)
 		}
 	}
 
