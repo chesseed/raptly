@@ -20,6 +20,7 @@ type RepoCLI struct {
 	Rename  RepoRenameCmd  `kong:"cmd,help='change name of the local repository'"`
 	Add     RepoAddCmd     `kong:"cmd,help='add file(s) to repository'"`
 	Include RepoIncludeCmd `kong:"cmd,help='process .changes file or directory for upload'"`
+	Remove  RepoRemoveCmd  `kong:"cmd,help='deletes packages from local repo'"`
 }
 
 type RepoListCmd struct{}
@@ -74,17 +75,17 @@ func (c *RepoShowCmd) Run(ctx *Context) error {
 }
 
 type RepoCreateCmd struct {
-	Name         string  `kong:"arg"`
-	Comment      *string `kong:"name='comment'"`
-	Component    *string `kong:"name='component'"`
-	Distribution *string `kong:"name='distribution'"`
+	Name         string `kong:"arg"`
+	Comment      string `kong:"name='comment'"`
+	Component    string `kong:"name='component'"`
+	Distribution string `kong:"name='distribution'"`
 }
 
 func (c *RepoCreateCmd) Run(ctx *Context) error {
 	opts := aptly.RepoCreateOptions{
-		Comment:             *c.Comment,
-		DefaultComponent:    *c.Component,
-		DefaultDistribution: *c.Distribution,
+		Comment:             c.Comment,
+		DefaultComponent:    c.Component,
+		DefaultDistribution: c.Distribution,
 	}
 
 	repo, err := ctx.client.ReposCreate(c.Name, opts)
@@ -97,17 +98,17 @@ func (c *RepoCreateCmd) Run(ctx *Context) error {
 }
 
 type RepoEditCmd struct {
-	Name         string  `kong:"arg"`
-	Comment      *string `kong:"name='comment'"`
-	Component    *string `kong:"name='component'"`
-	Distribution *string `kong:"name='distribution'"`
+	Name         string `kong:"arg"`
+	Comment      string `kong:"name='comment'"`
+	Component    string `kong:"name='component'"`
+	Distribution string `kong:"name='distribution'"`
 }
 
 func (c *RepoEditCmd) Run(ctx *Context) error {
 	opts := aptly.RepoUpdateOptions{
-		Comment:             *c.Comment,
-		DefaultComponent:    *c.Component,
-		DefaultDistribution: *c.Distribution,
+		Comment:             c.Comment,
+		DefaultComponent:    c.Component,
+		DefaultDistribution: c.Distribution,
 	}
 
 	repo, err := ctx.client.ReposEdit(c.Name, opts)
@@ -149,6 +150,20 @@ func (c *RepoDropCmd) Run(ctx *Context) error {
 		return err
 	}
 	fmt.Printf("Local repo [%s] has been removed.\n", c.Name)
+	return nil
+}
+
+type RepoRemoveCmd struct {
+	Name     string   `kong:"arg"`
+	Packages []string `kong:"arg"`
+}
+
+func (c *RepoRemoveCmd) Run(ctx *Context) error {
+	_, err := ctx.client.ReposRemovePackages(c.Name, c.Packages)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("packages dropped.\n")
 	return nil
 }
 

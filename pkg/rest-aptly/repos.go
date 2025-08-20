@@ -283,3 +283,26 @@ func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoI
 	}
 	return result, getError(resp)
 }
+
+type pkgRefList struct {
+	PackageRefs []string
+}
+
+func (c *Client) ReposRemovePackages(repo string, keys []string) (LocalRepo, error) {
+	refs := pkgRefList{PackageRefs: keys}
+
+	var result LocalRepo
+
+	resp, err := c.client.R().
+		SetPathParam("name", repo).
+		SetBody(&refs).
+		SetResult(&result).
+		Delete("api/repos/{name}/packages")
+
+	if err != nil {
+		return result, err
+	} else if resp.IsSuccess() {
+		return result, nil
+	}
+	return result, getError(resp)
+}
