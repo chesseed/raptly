@@ -40,6 +40,7 @@ func (c *RepoListCmd) Run(ctx *Context) error {
 
 type RepoShowCmd struct {
 	WithPackages bool   `kong:"name='with-packages'"`
+	Newest       bool   `kong:"name='newest',help='only show the newest version of each package, implies with-packages'"`
 	Name         string `kong:"arg"`
 }
 
@@ -49,7 +50,9 @@ func (c *RepoShowCmd) Run(ctx *Context) error {
 		return err
 	}
 
-	conf := aptly.ListPackagesOptions{}
+	conf := aptly.ListPackagesOptions{
+		MaximumVersion: c.Newest,
+	}
 	packages, err := ctx.client.ReposListPackages(c.Name, conf)
 	if err != nil {
 		return err
@@ -60,7 +63,7 @@ func (c *RepoShowCmd) Run(ctx *Context) error {
 	fmt.Printf("Default Distribution: %s\n", repo.DefaultDistribution)
 	fmt.Printf("Default Component: %s\n", repo.DefaultComponent)
 	fmt.Printf("Number of packages: %v\n", len(packages))
-	if c.WithPackages {
+	if c.WithPackages || c.Newest {
 		for _, pkg := range packages {
 			fmt.Printf("  %s\n", pkg.Key)
 		}

@@ -32,7 +32,7 @@ func (opts *ListPackagesOptions) MakeParams() (map[string]string, error) {
 	if opts.WithDeps {
 		params["withDeps"] = "1"
 	}
-	if opts.WithDeps {
+	if opts.MaximumVersion {
 		params["maximumVersion"] = "1"
 	}
 	if opts.Detailed {
@@ -42,19 +42,23 @@ func (opts *ListPackagesOptions) MakeParams() (map[string]string, error) {
 }
 
 type Package struct {
-	Key       string
-	ShortKey  string
-	FilesHash string
-	//
+	// always available
+
+	// unique package identifier
+	Key          string
+	FilesHash    string
 	Version      string
 	Architecture string
+
+	// only available when details format used
+
+	ShortKey string
 	// package name
 	Package string
 	// List of virtual packages this package provides
 	Provides *[]string
 
 	Source *string
-
 	//Extras map[string]string
 }
 

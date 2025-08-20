@@ -35,6 +35,7 @@ func (c *snapshotListCmd) Run(ctx *Context) error {
 type snapshotShowCmd struct {
 	Name         string `kong:"arg,help='snapshot name which has been given during snapshot creation'"`
 	WithPackages bool   `kong:"name='with-packages',help='show detailed list of packages and versions stored in the mirror'"`
+	Newest       bool   `kong:"name='newest',help='only show the newest version of each package, implies with-packages'"`
 }
 
 func (c *snapshotShowCmd) Run(ctx *Context) error {
@@ -43,7 +44,7 @@ func (c *snapshotShowCmd) Run(ctx *Context) error {
 		return err
 	}
 
-	packages, err := ctx.client.SnapshotPackages(c.Name, aptly.ListPackagesOptions{})
+	packages, err := ctx.client.SnapshotPackages(c.Name, aptly.ListPackagesOptions{MaximumVersion: c.Newest})
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (c *snapshotShowCmd) Run(ctx *Context) error {
 	// 	}
 	// }
 
-	if c.WithPackages {
+	if c.WithPackages || c.Newest {
 		fmt.Print("Packages:\n")
 		for _, pkg := range packages {
 			fmt.Printf("  %s\n", pkg.Key)
