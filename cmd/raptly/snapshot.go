@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	aptly "raptly/pkg/rest-aptly"
-	"strings"
 	"unicode/utf8"
 )
 
@@ -133,14 +132,6 @@ type SnapshotDiffCmd struct {
 	Right        string `kong:"arg,help='snapshot name which is “on the right” during comparison'"`
 }
 
-func padToWidth(str string, width int) string {
-	runes := utf8.RuneCountInString(str)
-	if runes < width {
-		return str + strings.Repeat(" ", width-runes)
-	}
-	return str
-}
-
 func (c *SnapshotDiffCmd) Run(ctx *Context) error {
 	diffs, err := ctx.client.SnapshotDiff(c.Left, c.Right, c.OnlyMatching)
 	if err != nil {
@@ -151,17 +142,16 @@ func (c *SnapshotDiffCmd) Run(ctx *Context) error {
 		fmt.Println("Snapshots are identical.")
 		return nil
 	}
+	const Arch = "Arch"
+	const Pkg = "Package"
+	const VerA = "Version in A"
+	const VerB = "Version in B"
+
 	// minimum widths
-	const (
-		minArch    = 4  // len 'Arch'
-		minPackage = 7  // len 'Package'
-		minA       = 12 // len 'Version in A'
-		minB       = 12 // len 'Version in B'
-	)
-	widthArch := minArch
-	widthPackage := minPackage
-	widthA := minA
-	widthB := minB
+	widthArch := utf8.RuneCountInString(Arch)
+	widthPackage := utf8.RuneCountInString(Pkg)
+	widthA := utf8.RuneCountInString(VerA)
+	widthB := utf8.RuneCountInString(VerB)
 
 	for _, pkgDiff := range diffs {
 		if pkgDiff.Left != nil {
@@ -176,20 +166,26 @@ func (c *SnapshotDiffCmd) Run(ctx *Context) error {
 		}
 	}
 
-	fmt.Printf("  %s | %s | %s | %s\n",
-		padToWidth("Arch", widthArch),
-		padToWidth("Package", widthPackage),
-		padToWidth("Version in A", widthA),
-		padToWidth("Version in B", widthB),
+	fmt.Printf("  %-*s | %-*s | %-*s | %-*s\n",
+		widthArch, Arch,
+		widthPackage, Pkg,
+		widthA, VerA,
+		widthB, VerB,
 	)
+	// ANSI color sequences
+	const Reset = "\033[0m"
+	const Red = "\033[31m"
+	const Green = "\033[32m"
+	const Yellow = "\033[33m"
+
 	for _, pkgDiff := range diffs {
 
 		// '!' for different version, '-' for missing, '+' for added
-		indicator := "!"
+		indicator := Yellow + "!" + Reset
 		if pkgDiff.Left == nil {
-			indicator = "+"
+			indicator = Green + "+" + Reset
 		} else if pkgDiff.Right == nil {
-			indicator = "-"
+			indicator = Red + "-" + Reset
 		}
 		arch := ""
 		if pkgDiff.Left != nil {
@@ -214,12 +210,12 @@ func (c *SnapshotDiffCmd) Run(ctx *Context) error {
 			b = pkgDiff.Right.Version
 		}
 
-		fmt.Printf("%s %s | %s | %s | %s\n",
+		fmt.Printf("%s %-*s | %-*s | %-*s | %-*s\n",
 			indicator,
-			padToWidth(arch, widthArch),
-			padToWidth(pkg, widthPackage),
-			padToWidth(a, widthA),
-			padToWidth(b, widthB),
+			widthArch, arch,
+			widthPackage, pkg,
+			widthA, a,
+			widthB, b,
 		)
 	}
 	return nil
