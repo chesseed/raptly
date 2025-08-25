@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - "master"
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  ci-binary-build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux]
+        goarch: ["amd64", "arm64"]
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          # fetch the whole repo for `git describe` to work
+          fetch-depth: 0
+
+      - name: "Read Go Version"
+        run: |
+          echo "GOVER=$(sed -n 's/^go \(.*\)/\1/p' go.mod)" >> $GITHUB_OUTPUT
+        id: goversion
+
+      - name: "Setup Go"
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ steps.goversion.outputs.GOVER }}
+
+      - name: "Get aptly version"
+        run: |
+          raptlyver=$(make -s version)
+          echo "raptly Version: $raptlyver"
+          echo "VERSION=$raptlyver" >> $GITHUB_OUTPUT
+        id: releaseversion
+
+      - name: "Build aptly ${{ matrix.goos }}/${{ matrix.goarch }}"
+        env:
+          GOBIN: /usr/local/bin
+        run: |
+          make pack GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
+
+      - name: "Upload Artifacts"
+        uses: actions/upload-artifact@v4
+        if: startsWith(github.event.ref, 'refs/tags')
+        with:
+          name: raptly_${{ steps.releaseversion.outputs.VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}
+          path: build/raptly_${{ steps.releaseversion.outputs.VERSION }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
+          compression-level: 0 # no compression
+
+  gh-release:
+    name: "Github Release"
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    needs: ci-binary-build
+    if: startsWith(github.event.ref, 'refs/tags')
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Get raptly version"
+        run: |
+          raptlyver=$(make -s version)
+          echo "raptly Version: $raptlyver"
+          echo "VERSION=$raptlyver" >> $GITHUB_OUTPUT
+        id: releaseversion
+
+      - name: "Download Artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          path: out/
+
+      - name: "Create Release Notes"
+        run: |
+          echo -e "## Changes\n\n" > out/release-notes.md
+          dpkg-parsechangelog -S Changes | tail -n +4 >> out/release-notes.md
+
+      - name: "Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "raptly Release ${{ steps.releaseversion.outputs.VERSION }}"
+          files: "out/**/raptly_*.zip"
+          body_path: "out/release-notes.md"
