@@ -39,4 +39,8 @@ go.work.sum
 *.changes
 *.buildinfo
 
+# nektos/act test directory
+.artifacts/
+
 cmd/raptly/raptly
+build/
