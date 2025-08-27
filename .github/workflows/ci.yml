@@ -12,12 +12,65 @@ env:
   DEBIAN_FRONTEND: noninteractive
 
 jobs:
+  ci-deb-build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # arch: ["amd64"]
+        arch: ["amd64", "arm64"]
+    container:
+      image: debian:trixie-slim
+      options: --user root
+      env:
+        APT_LISTCHANGES_FRONTEND: none
+        DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          # fetch the whole repo for `git describe` to work
+          fetch-depth: 0
+
+      - name: "Install Build Packages"
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates nodejs
+          apt-get -y build-dep .
+
+      - name: "Read Go Version"
+        run: |
+          gover=$(sed -n 's/^go \(.*\)/\1/p' go.mod)
+          echo "Go Version: $gover"
+          echo "GOVER=$gover" >> $GITHUB_OUTPUT
+        id: goversion
+
+      - name: "Build Debian packages"
+        run: |
+          make dpkg DEBARCH=${{ matrix.arch }}
+
+      - name: "Get aptly version"
+        run: |
+          raptlyver=$(make -s version)
+          echo "Aptly Version: $raptlyver"
+          echo "VERSION=$raptlyver" >> $GITHUB_OUTPUT
+        id: releaseversion
+
+      - name: "Upload CI Artifacts"
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v4
+        with:
+          name: raptly_deb_${{ steps.releaseversion.outputs.VERSION }}_${{ matrix.arch }}
+          path: build/*.deb
+          retention-days: 7
+
   ci-binary-build:
     name: "Build"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux]
+        goos: ["linux"]
         goarch: ["amd64", "arm64"]
 
     steps:
@@ -62,7 +115,7 @@ jobs:
     name: "Github Release"
     runs-on: ubuntu-latest
     continue-on-error: false
-    needs: ci-binary-build
+    needs: "ci-binary-build"
     if: startsWith(github.event.ref, 'refs/tags')
     steps:
       - name: "Checkout Repository"

@@ -32,7 +32,6 @@ var cli struct {
 }
 
 func main() {
-
 	ctx := kong.Parse(&cli,
 		kong.Vars{"version": Version})
 

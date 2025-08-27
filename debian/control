@@ -1,0 +1,19 @@
+Source: raptly
+Section: utils
+Priority: optional
+Maintainer: chesseed <9110170+chesseed@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-golang,
+               golang-go,
+               git,
+               make
+Standards-Version: 4.7.0
+Homepage: https://github.com/chesseed/raptly
+
+Package: raptly
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Built-Using: ${misc:Static-Built-Using}, ${misc:Built-Using}
+Description: Simple tool to manage aptly servers via the aptly REST API
+ .
+ This is the main package, it contains the raptly command-line utility.

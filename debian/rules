@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+export GOARCH := $(shell if [ $(DEB_TARGET_ARCH) = "i386" ]; then echo "386"; elif [ $(DEB_TARGET_ARCH) = "armhf" ]; then echo "arm"; else echo  $(DEB_TARGET_ARCH); fi)
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_auto_test:
+	# run during autopkgtests
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+
+override_dh_strip:
+
+override_dh_golang: # fails on non native debian build
+
+override_dh_makeshlibs:  # fails with cross compiling on non native debian build
+
+override_dh_auto_build:
+	go build -ldflags "-X main.Version=$(DEB_VERSION)" -o usr/bin/raptly ./cmd/raptly
