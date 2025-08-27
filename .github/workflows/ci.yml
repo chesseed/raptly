@@ -6,7 +6,7 @@ on:
     tags:
       - "v*"
     branches:
-      - "master"
+      - "test-ci"
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -88,6 +88,6 @@ jobs:
       - name: "Release"
         uses: softprops/action-gh-release@v2
         with:
-          name: "raptly Release ${{ steps.releaseversion.outputs.VERSION }}"
+          name: "raptly release ${{ steps.releaseversion.outputs.VERSION }}"
           files: "out/**/raptly_*.zip"
           body_path: "out/release-notes.md"
