@@ -6,7 +6,7 @@ on:
     tags:
       - "v*"
     branches:
-      - "test-ci"
+      - "main"
 
 env:
   DEBIAN_FRONTEND: noninteractive
