@@ -8,7 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// used in SnapshotPackages(Detailed) and RepoPackages(Detailed)
+// ListPackagesOptions is used in SnapshotPackages(Detailed) and RepoPackages(Detailed)
 type ListPackagesOptions struct {
 	// package query, see https://www.aptly.info/doc/feature/query/
 	Query string
@@ -106,7 +106,7 @@ func responseToPackages(resp *resty.Response, detailed bool) ([]Package, error) 
 	return packages, nil
 }
 
-// Get list of packages keys
+// PackagesSearch returns list of packages
 //
 // since Aptly 1.6.0
 func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) {
@@ -129,7 +129,7 @@ func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) 
 	return responseToPackages(resp, detailed)
 }
 
-// Get package by key
+// PackagesInfo returns the package by key
 func (c *Client) PackagesInfo(key string) (Package, error) {
 
 	var pkg Package

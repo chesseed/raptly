@@ -14,7 +14,7 @@ func TestReposList(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/repos",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 [
     {
         "Name": "secondRepo",
@@ -56,7 +56,7 @@ func TestReposCreate(t *testing.T) {
 	"Name": "firstRepo"
 }
 		`)),
-			newRawJsonResponder(200, `
+			newRawJSONResponder(200, `
 {
 	"Name": "firstRepo",
 	"Comment": "",
@@ -84,7 +84,7 @@ func TestReposCreate(t *testing.T) {
 	"Comment": "my comment"
 }
 		`)),
-			newRawJsonResponder(200, `
+			newRawJSONResponder(200, `
 {
 	"Name": "secondRepo",
 	"Comment": "my comment",
@@ -117,7 +117,7 @@ func TestReposEdit(t *testing.T) {
 	"Comment": "longer comment"
 }
 		`)),
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"Name": "edited",
 	"DefaultComponent": "newComponent",
@@ -140,7 +140,7 @@ func TestReposShow(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/repos/secondRepo",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"Name": "secondRepo",
 	"Comment": "",
@@ -160,28 +160,28 @@ func TestReposListPackages(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/repos/testRepo/packages",
-		newRawJsonResponder(200, test_pkgs_simple1.Json))
+		newRawJSONResponder(200, testPkgsSimple1.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/repos/testRepo/packages",
 		map[string]string{"q": "query", "withDeps": "1", "maximumVersion": "1"},
-		newRawJsonResponder(200, test_pkgs_simple2.Json))
+		newRawJSONResponder(200, testPkgsSimple2.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/repos/testRepo/packages",
 		map[string]string{"format": "details"},
-		newRawJsonResponder(200, test_pkgs_detailed.Json))
+		newRawJSONResponder(200, testPkgsDetailed.JSON))
 
 	t.Run("without query", func(t *testing.T) {
 		pkgs, err := client.ReposListPackages("testRepo", ListPackagesOptions{})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple1.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple1.Pkgs, pkgs)
 	})
 	t.Run("with query", func(t *testing.T) {
 		pkgs, err := client.ReposListPackages("testRepo", ListPackagesOptions{Query: "query", WithDeps: true, MaximumVersion: true})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple2.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple2.Pkgs, pkgs)
 	})
 	t.Run("detailed", func(t *testing.T) {
 		pkgs, err := client.ReposListPackages("testRepo", ListPackagesOptions{Detailed: true})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_detailed.Pkgs, pkgs)
+		assert.Equal(t, testPkgsDetailed.Pkgs, pkgs)
 	})
 }
 
@@ -200,9 +200,9 @@ func TestReposDrop(t *testing.T) {
 func TestReposAddFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/fileName", newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/force", map[string]string{"forceReplace": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/noRemove", map[string]string{"noRemove": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/fileName", newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/force", map[string]string{"forceReplace": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName/noRemove", map[string]string{"noRemove": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
 
 	t.Run("without options", func(t *testing.T) {
 		res, err := client.ReposAddFile("testRepo", "dirName", "fileName", RepoAddOptions{})
@@ -224,9 +224,9 @@ func TestReposAddFile(t *testing.T) {
 func TestReposAddDirectory(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName", newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/force", map[string]string{"forceReplace": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/noRemove", map[string]string{"noRemove": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/file/dirName", newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/force", map[string]string{"forceReplace": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/file/noRemove", map[string]string{"noRemove": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
 
 	t.Run("without options", func(t *testing.T) {
 		res, err := client.ReposAddDirectory("testRepo", "dirName", RepoAddOptions{})
@@ -248,11 +248,11 @@ func TestReposAddDirectory(t *testing.T) {
 func TestReposIncludeFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/fileName", newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/forceReplace", map[string]string{"forceReplace": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/noRemoveFiles", map[string]string{"noRemoveFiles": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/acceptUnsigned", map[string]string{"acceptUnsigned": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/ignoreSignature", map[string]string{"ignoreSignature": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/fileName", newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/forceReplace", map[string]string{"forceReplace": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/noRemoveFiles", map[string]string{"noRemoveFiles": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/acceptUnsigned", map[string]string{"acceptUnsigned": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/dirName/ignoreSignature", map[string]string{"ignoreSignature": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
 
 	t.Run("without options", func(t *testing.T) {
 		res, err := client.ReposIncludeFile("testRepo", "dirName", "fileName", RepoIncludeOptions{})
@@ -284,11 +284,11 @@ func TestReposIncludeFile(t *testing.T) {
 func TestReposIncludeDirectory(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/include/fileName", newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/forceReplace", map[string]string{"forceReplace": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/noRemoveFiles", map[string]string{"noRemoveFiles": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/acceptUnsigned", map[string]string{"acceptUnsigned": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
-	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/ignoreSignature", map[string]string{"ignoreSignature": "1"}, newRawJsonResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/repos/testRepo/include/fileName", newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/forceReplace", map[string]string{"forceReplace": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/noRemoveFiles", map[string]string{"noRemoveFiles": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/acceptUnsigned", map[string]string{"acceptUnsigned": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
+	httpmock.RegisterResponderWithQuery(http.MethodPost, "http://host.local/api/repos/testRepo/include/ignoreSignature", map[string]string{"ignoreSignature": "1"}, newRawJSONResponder(200, `{"FailedFiles": []}`))
 
 	t.Run("without options", func(t *testing.T) {
 		res, err := client.ReposIncludeDirectory("testRepo", "fileName", RepoIncludeOptions{})

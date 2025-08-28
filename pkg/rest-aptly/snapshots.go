@@ -259,6 +259,8 @@ type SnapshotMergeOptions struct {
 	NoRemove bool
 }
 
+// SnapshotMerge create snapshot by merging many into a single one
+//
 // since aptly 1.6.0
 func (c *Client) SnapshotMerge(destination string, sources []string, opts SnapshotMergeOptions) (Snapshot, error) {
 	var snap Snapshot

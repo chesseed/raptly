@@ -146,7 +146,7 @@ func (c *Client) PublishShow(distribution string, prefix string) (PublishedList,
 	return lists, getError(resp)
 }
 
-// Drop a published repo/snapshot
+// PublishDrop deletes a published repo/snapshot
 func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions) error {
 	var lists PublishedList
 
@@ -257,7 +257,7 @@ type PublishUpdateOptions struct {
 	MultiDist *bool `json:"MultiDist,omitempty"`
 }
 
-// Update published list to match repository
+// PublishUpdateOrSwitch updates published list to match repository
 func (c *Client) PublishUpdateOrSwitch(prefix string, distribution string, opts PublishUpdateOptions) (PublishedList, error) {
 
 	// workaround for older aptly versions

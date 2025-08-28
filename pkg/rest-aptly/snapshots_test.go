@@ -14,7 +14,7 @@ func TestSnapshotList(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/snapshots",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 [
     {
         "Name": "snap1",
@@ -58,7 +58,7 @@ func TestSnapshotShow(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/snapshots/snapTest",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"Name": "snapTest",
 	"CreatedAt": "2025-07-31T19:42:05.254886023Z",
@@ -83,30 +83,30 @@ func TestSnapshotPackages(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/snapshots/snapTest/packages",
-		newRawJsonResponder(200, test_pkgs_simple1.Json))
+		newRawJSONResponder(200, testPkgsSimple1.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/snapshots/snapTest/packages",
 		map[string]string{"q": "query"},
-		newRawJsonResponder(200, test_pkgs_simple2.Json))
+		newRawJSONResponder(200, testPkgsSimple2.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/snapshots/snapTest/packages",
 		map[string]string{"format": "details"},
-		newRawJsonResponder(200, test_pkgs_detailed.Json))
+		newRawJSONResponder(200, testPkgsDetailed.JSON))
 
 	t.Run("without query", func(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple1.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple1.Pkgs, pkgs)
 
 	})
 	t.Run("with query", func(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{Query: "query"})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple2.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple2.Pkgs, pkgs)
 
 	})
 	t.Run("detailed", func(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{Detailed: true})
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_detailed.Pkgs, pkgs)
+		assert.Equal(t, testPkgsDetailed.Pkgs, pkgs)
 	})
 }
 
@@ -132,7 +132,7 @@ func TestSnapshotFromRepo(t *testing.T) {
 	"Description": "description"
 }
 		`)),
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"Name": "repoSnap",
 	"Description": "",
@@ -173,7 +173,7 @@ func TestSnapshotDiff(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/snapshots/snap1/diff/snap2",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 [
     {
         "Left": "Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f",
@@ -247,7 +247,7 @@ func TestSnapshotUpdate(t *testing.T) {
 	"Description": "new"
 }
 		`)),
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"Name": "newName",
 	"Description": "new",
@@ -289,7 +289,7 @@ func TestSnapshotMerge(t *testing.T) {
 	"Sources": ["snap1","snap2","snap3"]
 }
 		`)),
-		newRawJsonResponder(201, `
+		newRawJSONResponder(201, `
 {
     "Name": "snapMerged",
     "CreatedAt": "2025-08-16T23:31:39.54837804+02:00",
@@ -327,7 +327,7 @@ func TestSnapshotCreate(t *testing.T) {
 	"Name": "snapEmpty"
 }
 		`)),
-		newRawJsonResponder(201, `
+		newRawJSONResponder(201, `
 {
 	"Name": "snapEmpty",
 	"CreatedAt": "2025-08-16T22:05:30.477336537Z",

@@ -7,14 +7,14 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func newRawJsonResponse(status int, body string) *http.Response {
+func newRawJSONResponse(status int, body string) *http.Response {
 	resp := httpmock.NewStringResponse(status, body)
 	resp.Header.Add("Content-Type", "application/json")
 	return resp
 }
 
-func newRawJsonResponder(status int, body string) httpmock.Responder {
-	return httpmock.ResponderFromResponse(newRawJsonResponse(status, body))
+func newRawJSONResponder(status int, body string) httpmock.Responder {
+	return httpmock.ResponderFromResponse(newRawJSONResponse(status, body))
 }
 
 // activate httpmock and enable it in client

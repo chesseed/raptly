@@ -1,9 +1,9 @@
 package aptly
 
-type AptlyApiVersion struct {
+type AptlyAPIVersion struct {
 	Version string
 }
-type Version = AptlyApiVersion
+type Version = AptlyAPIVersion
 
 func (c *Client) Version() (Version, error) {
 	var version Version
@@ -26,6 +26,7 @@ type StorageUsage struct {
 	PercentFull float32
 }
 
+// StorageUsage get amount of memory used/free on disk
 // since Aptly 1.6.0
 func (c *Client) StorageUsage() (StorageUsage, error) {
 	var storage StorageUsage

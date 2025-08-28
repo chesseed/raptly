@@ -12,36 +12,36 @@ func TestPackagesSearch(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/packages",
-		newRawJsonResponder(200, test_pkgs_simple1.Json))
+		newRawJSONResponder(200, testPkgsSimple1.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/packages",
 		map[string]string{"q": "query"},
-		newRawJsonResponder(200, test_pkgs_simple2.Json))
+		newRawJSONResponder(200, testPkgsSimple2.JSON))
 	httpmock.RegisterResponderWithQuery(http.MethodGet, "http://host.local/api/packages",
 		map[string]string{"format": "details"},
-		newRawJsonResponder(200, test_pkgs_detailed.Json))
+		newRawJSONResponder(200, testPkgsDetailed.JSON))
 
 	t.Run("simple without query", func(t *testing.T) {
 		pkgs, err := client.PackagesSearch("", false)
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple1.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple1.Pkgs, pkgs)
 	})
 	t.Run("simple with query", func(t *testing.T) {
 		pkgs, err := client.PackagesSearch("query", false)
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_simple2.Pkgs, pkgs)
+		assert.Equal(t, testPkgsSimple2.Pkgs, pkgs)
 	})
 
 	t.Run("detailed", func(t *testing.T) {
 		pkgs, err := client.PackagesSearch("", true)
 		assert.NoError(t, err)
-		assert.Equal(t, test_pkgs_detailed.Pkgs, pkgs)
+		assert.Equal(t, testPkgsDetailed.Pkgs, pkgs)
 	})
 }
 
 func TestPackagesInfo(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
-	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f", newRawJsonResponder(200, `
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/packages/Pamd64%20hello%203.0.0-2%2096e8a0deaf8fc95f", newRawJSONResponder(200, `
 {
     "Architecture": "amd64",
     "Depends": "libc6 (>= 2.34)",

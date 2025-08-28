@@ -7,7 +7,7 @@ type LocalRepo struct {
 	Name                string `json:"name,omitempty"`
 }
 
-// get list of repositories
+// ReposList get the list of local repositories
 func (c *Client) ReposList() ([]LocalRepo, error) {
 	var repos []LocalRepo
 
@@ -30,7 +30,7 @@ type RepoCreateOptions struct {
 	FromSnapshot        string `json:",omitempty"`
 }
 
-// create new repository
+// ReposCreate create new local repository
 func (c *Client) ReposCreate(name string, opts RepoCreateOptions) (LocalRepo, error) {
 	var repo LocalRepo
 
@@ -60,7 +60,7 @@ type RepoUpdateOptions struct {
 	Name string `json:",omitempty"`
 }
 
-// edit/update existing repository
+// ReposEdit edit/update existing local repository
 func (c *Client) ReposEdit(name string, opts RepoUpdateOptions) (LocalRepo, error) {
 	var repo LocalRepo
 
@@ -78,7 +78,7 @@ func (c *Client) ReposEdit(name string, opts RepoUpdateOptions) (LocalRepo, erro
 	return repo, getError(resp)
 }
 
-// get repository information
+// ReposShow get repository information
 func (c *Client) ReposShow(name string) (LocalRepo, error) {
 	var repo LocalRepo
 
@@ -95,7 +95,7 @@ func (c *Client) ReposShow(name string) (LocalRepo, error) {
 	return repo, getError(resp)
 }
 
-// Get list of packages keys
+// ReposListPackages get list of packages
 func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Package, error) {
 
 	params, err := opts.MakeParams()
@@ -114,7 +114,7 @@ func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Pac
 	return responseToPackages(resp, opts.Detailed)
 }
 
-// Remove the repository
+// ReposDrop delete the local repository
 func (c *Client) ReposDrop(name string, force bool) error {
 
 	params := make(map[string]string)
@@ -213,7 +213,7 @@ type RepoIncludeOptions struct {
 	IgnoreSignature bool
 }
 
-// include previously uploaded changes to repository
+// ReposIncludeFile include previously uploaded changes to repository
 //
 // Note: does not check files, it's the caller's responsibility to ensure the file is a valid changes file
 func (c *Client) ReposIncludeFile(repo string, directory string, filename string, opts RepoIncludeOptions) (RepoAddResult, error) {
@@ -250,7 +250,7 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 	return result, getError(resp)
 }
 
-// include previously uploaded directory to repository
+// ReposIncludeDirectory include previously uploaded directory to repository
 func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoIncludeOptions) (RepoAddResult, error) {
 
 	params := make(map[string]string)

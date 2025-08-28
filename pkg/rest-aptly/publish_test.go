@@ -22,7 +22,7 @@ func TestPublishList(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/publish",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 [
 	{
 		"AcquireByHash": false,
@@ -106,7 +106,7 @@ func TestPublishShow(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/publish/snap/bookworm",
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"AcquireByHash": false,
 	"Architectures": [
@@ -178,7 +178,7 @@ func TestPublishRepo(t *testing.T) {
 			tdhttpmock.JSONBody(td.JSONPointer("/Sources/0/Name", "testing")),
 			tdhttpmock.JSONBody(td.JSONPointer("/Signing/Skip", true)),
 		),
-		newRawJsonResponder(200, `
+		newRawJSONResponder(200, `
 {
 	"AcquireByHash": false,
 	"Architectures": [

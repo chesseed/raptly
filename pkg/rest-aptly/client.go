@@ -1,3 +1,4 @@
+// Package aptly provides a client to access the aptly REST API in go
 package aptly
 
 import (
@@ -12,7 +13,7 @@ type Client struct {
 	client *resty.Client
 }
 
-// get resty client used for advanced use cases like testing or special auth
+// GetClient get resty client used for advanced use cases like testing or special auth
 func (c *Client) GetClient() *resty.Client {
 	return c.client
 }
@@ -21,12 +22,12 @@ func NewClient(url string) *Client {
 	client := new(Client)
 	client.client = resty.New()
 	client.client.SetBaseURL(url)
-	client.client.SetError(ApiError{})
+	client.client.SetError(APIError{})
 
 	return client
 }
 
-type ApiError struct {
+type APIError struct {
 	Error string `json:"error"`
 }
 
@@ -34,11 +35,11 @@ type ApiError struct {
 func getError(response *resty.Response) error {
 	e := response.Error()
 	if e != nil {
-		return errors.New(e.(*ApiError).Error)
+		return errors.New(e.(*APIError).Error)
 	}
 
 	// workaround for pre 1.6.x version not sending json content-type header
-	var msg ApiError
+	var msg APIError
 	me := json.Unmarshal(response.Body(), &msg)
 	if me == nil {
 		return errors.New(msg.Error)

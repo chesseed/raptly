@@ -14,13 +14,13 @@ func TestGetError(t *testing.T) {
 	httpmock.Activate(t)
 	client := resty.New()
 	client.SetBaseURL("http://host.local")
-	client.SetError(ApiError{})
+	client.SetError(APIError{})
 	// Get the underlying HTTP Client and set it to Mock
 	httpmock.ActivateNonDefault(client.GetClient())
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(500, ApiError{Error: "json"})
+			return httpmock.NewJsonResponse(500, APIError{Error: "json"})
 		})
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
 		func(req *http.Request) (*http.Response, error) {
@@ -31,9 +31,9 @@ func TestGetError(t *testing.T) {
 			return httpmock.NewStringResponse(502, ""), nil
 		})
 
-	resJson, err := client.R().Get("json/content-type")
+	resJSON, err := client.R().Get("json/content-type")
 	assert.NoError(t, err)
-	assert.ErrorContains(t, getError(resJson), "json")
+	assert.ErrorContains(t, getError(resJSON), "json")
 	resPlain, err := client.R().Get("plain/content-type")
 	assert.NoError(t, err)
 	assert.ErrorContains(t, getError(resPlain), "plain")

@@ -1,12 +1,12 @@
 package aptly
 
 type testPkgData struct {
-	Json string
+	JSON string
 	Pkgs []Package
 }
 
-var test_pkgs_detailed = testPkgData{
-	Json: `[
+var testPkgsDetailed = testPkgData{
+	JSON: `[
     {
         "Architecture": "amd64",
         "Depends": "libc6 (>= 2.34)",
@@ -97,8 +97,8 @@ var test_pkgs_detailed = testPkgData{
 	},
 }
 
-var test_pkgs_simple1 = testPkgData{
-	Json: `["Pamd64 nano 7.2-1+deb12u1 c5d2ac1639544e75", "Psource hello 3.0.0-2 571d33f41765ddba"]`,
+var testPkgsSimple1 = testPkgData{
+	JSON: `["Pamd64 nano 7.2-1+deb12u1 c5d2ac1639544e75", "Psource hello 3.0.0-2 571d33f41765ddba"]`,
 	Pkgs: []Package{
 		{
 			Key:          "Pamd64 nano 7.2-1+deb12u1 c5d2ac1639544e75",
@@ -116,8 +116,8 @@ var test_pkgs_simple1 = testPkgData{
 		},
 	}}
 
-var test_pkgs_simple2 = testPkgData{
-	Json: `["Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f", "Pamd64 hello-dbgsym 3.0.0-2 185cc47ca86a934c"]`,
+var testPkgsSimple2 = testPkgData{
+	JSON: `["Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f", "Pamd64 hello-dbgsym 3.0.0-2 185cc47ca86a934c"]`,
 	Pkgs: []Package{
 		{
 			Key:          "Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f",
