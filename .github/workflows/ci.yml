@@ -39,13 +39,6 @@ jobs:
           apt-get install -y --no-install-recommends ca-certificates nodejs
           apt-get -y build-dep .
 
-      - name: "Read Go Version"
-        run: |
-          gover=$(sed -n 's/^go \(.*\)/\1/p' go.mod)
-          echo "Go Version: $gover"
-          echo "GOVER=$gover" >> $GITHUB_OUTPUT
-        id: goversion
-
       - name: "Build Debian packages"
         run: |
           make dpkg DEBARCH=${{ matrix.arch }}
