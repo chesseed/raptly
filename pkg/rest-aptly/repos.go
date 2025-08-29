@@ -11,16 +11,10 @@ type LocalRepo struct {
 func (c *Client) ReposList() ([]LocalRepo, error) {
 	var repos []LocalRepo
 
-	resp, err := c.client.R().
-		SetResult(&repos).
-		Get("api/repos")
+	req := c.get("api/repos").
+		SetResult(&repos)
 
-	if err != nil {
-		return repos, err
-	} else if resp.IsSuccess() {
-		return repos, nil
-	}
-	return repos, getError(resp)
+	return repos, c.send(req)
 }
 
 type RepoCreateOptions struct {
@@ -39,17 +33,11 @@ func (c *Client) ReposCreate(name string, opts RepoCreateOptions) (LocalRepo, er
 		RepoCreateOptions
 	}
 
-	resp, err := c.client.R().
+	req := c.post("api/repos").
 		SetResult(&repo).
-		SetBody(&CreatePayload{Name: name, RepoCreateOptions: opts}).
-		Post("api/repos")
+		SetBody(&CreatePayload{Name: name, RepoCreateOptions: opts})
 
-	if err != nil {
-		return repo, err
-	} else if resp.IsSuccess() {
-		return repo, nil
-	}
-	return repo, getError(resp)
+	return repo, c.send(req)
 }
 
 type RepoUpdateOptions struct {
@@ -64,35 +52,23 @@ type RepoUpdateOptions struct {
 func (c *Client) ReposEdit(name string, opts RepoUpdateOptions) (LocalRepo, error) {
 	var repo LocalRepo
 
-	resp, err := c.client.R().
-		SetResult(&repo).
-		SetBody(opts).
+	req := c.put("api/repos/{name}").
 		SetPathParam("name", name).
-		Put("api/repos/{name}")
+		SetResult(&repo).
+		SetBody(opts)
 
-	if err != nil {
-		return repo, err
-	} else if resp.IsSuccess() {
-		return repo, nil
-	}
-	return repo, getError(resp)
+	return repo, c.send(req)
 }
 
 // ReposShow get repository information
 func (c *Client) ReposShow(name string) (LocalRepo, error) {
 	var repo LocalRepo
 
-	resp, err := c.client.R().
-		SetResult(&repo).
+	req := c.get("api/repos/{name}").
 		SetPathParam("name", name).
-		Get("api/repos/{name}")
+		SetResult(&repo)
 
-	if err != nil {
-		return repo, err
-	} else if resp.IsSuccess() {
-		return repo, nil
-	}
-	return repo, getError(resp)
+	return repo, c.send(req)
 }
 
 // ReposListPackages get list of packages
@@ -103,15 +79,11 @@ func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Pac
 		return nil, err
 	}
 
-	resp, err := c.client.R().
+	req := c.get("api/repos/{name}/packages").
 		SetPathParam("name", name).
-		SetQueryParams(params).
-		Get("api/repos/{name}/packages")
+		SetQueryParams(params)
 
-	if err != nil {
-		return nil, err
-	}
-	return responseToPackages(resp, opts.Detailed)
+	return sendPackagesRequest(req, opts.Detailed)
 }
 
 // ReposDrop delete the local repository
@@ -122,17 +94,11 @@ func (c *Client) ReposDrop(name string, force bool) error {
 		params["force"] = "1"
 	}
 
-	resp, err := c.client.R().
+	req := c.delete("api/repos/{name}").
 		SetPathParam("name", name).
-		SetQueryParams(params).
-		Delete("api/repos/{name}")
+		SetQueryParams(params)
 
-	if err != nil {
-		return err
-	} else if resp.IsSuccess() {
-		return nil
-	}
-	return getError(resp)
+	return c.send(req)
 }
 
 type RepoAddResult struct {
@@ -159,20 +125,14 @@ func (c *Client) ReposAddFile(repo string, directory string, filename string, op
 
 	var result RepoAddResult
 
-	resp, err := c.client.R().
+	req := c.post("api/repos/{name}/file/{dir}/{file}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetPathParam("file", filename).
 		SetQueryParams(params).
-		SetResult(&result).
-		Post("api/repos/{name}/file/{dir}/{file}")
+		SetResult(&result)
 
-	if err != nil {
-		return result, err
-	} else if resp.IsSuccess() {
-		return result, nil
-	}
-	return result, getError(resp)
+	return result, c.send(req)
 }
 
 func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOptions) (RepoAddResult, error) {
@@ -187,19 +147,13 @@ func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOp
 
 	var result RepoAddResult
 
-	resp, err := c.client.R().
+	req := c.post("api/repos/{name}/file/{dir}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetQueryParams(params).
-		SetResult(&result).
-		Post("api/repos/{name}/file/{dir}")
+		SetResult(&result)
 
-	if err != nil {
-		return result, err
-	} else if resp.IsSuccess() {
-		return result, nil
-	}
-	return result, getError(resp)
+	return result, c.send(req)
 }
 
 type RepoIncludeOptions struct {
@@ -234,20 +188,14 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 
 	var result RepoAddResult
 
-	resp, err := c.client.R().
+	req := c.post("api/repos/{name}/include/{dir}/{file}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetPathParam("file", filename).
 		SetQueryParams(params).
-		SetResult(&result).
-		Post("api/repos/{name}/include/{dir}/{file}")
+		SetResult(&result)
 
-	if err != nil {
-		return result, err
-	} else if resp.IsSuccess() {
-		return result, nil
-	}
-	return result, getError(resp)
+	return result, c.send(req)
 }
 
 // ReposIncludeDirectory include previously uploaded directory to repository
@@ -269,19 +217,13 @@ func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoI
 
 	var result RepoAddResult
 
-	resp, err := c.client.R().
+	req := c.post("api/repos/{name}/include/{dir}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetQueryParams(params).
-		SetResult(&result).
-		Post("api/repos/{name}/include/{dir}")
+		SetResult(&result)
 
-	if err != nil {
-		return result, err
-	} else if resp.IsSuccess() {
-		return result, nil
-	}
-	return result, getError(resp)
+	return result, c.send(req)
 }
 
 type pkgRefList struct {
@@ -293,16 +235,10 @@ func (c *Client) ReposRemovePackages(repo string, keys []string) (LocalRepo, err
 
 	var result LocalRepo
 
-	resp, err := c.client.R().
+	req := c.delete("api/repos/{name}/packages").
 		SetPathParam("name", repo).
 		SetBody(&refs).
-		SetResult(&result).
-		Delete("api/repos/{name}/packages")
+		SetResult(&result)
 
-	if err != nil {
-		return result, err
-	} else if resp.IsSuccess() {
-		return result, nil
-	}
-	return result, getError(resp)
+	return result, c.send(req)
 }

@@ -64,6 +64,7 @@ type Package struct {
 
 var packageRegex = regexp.MustCompile(`^(\S*)P(\S+)\s(\S+)\s(\S+)\s(\S+)$`)
 
+// PackageFromKey convert aptly key to Package
 func PackageFromKey(key string) (Package, error) {
 	matched := packageRegex.FindStringSubmatch(key)
 
@@ -74,13 +75,17 @@ func PackageFromKey(key string) (Package, error) {
 	return Package{Key: key, Architecture: matched[2], Package: matched[3], Version: matched[4], FilesHash: matched[5]}, nil
 }
 
-func responseToPackages(resp *resty.Response, detailed bool) ([]Package, error) {
+func sendPackagesRequest(req *resty.Request, detailed bool) ([]Package, error) {
+	resp, err := req.Send()
+
+	if err != nil {
+		return nil, err
+	}
 	if resp.IsError() {
 		return nil, getError(resp)
 	}
 
 	var packages []Package
-	var err error
 	if detailed {
 		err = json.Unmarshal(resp.Body(), &packages)
 	} else {
@@ -119,14 +124,10 @@ func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) 
 		params["format"] = "details"
 	}
 
-	resp, err := c.client.R().
-		SetQueryParams(params).
-		Get("api/packages")
+	req := c.get("api/packages").
+		SetQueryParams(params)
 
-	if err != nil {
-		return nil, err
-	}
-	return responseToPackages(resp, detailed)
+	return sendPackagesRequest(req, detailed)
 }
 
 // PackagesInfo returns the package by key
@@ -134,15 +135,9 @@ func (c *Client) PackagesInfo(key string) (Package, error) {
 
 	var pkg Package
 
-	resp, err := c.client.R().
+	req := c.get("api/packages/{key}").
 		SetPathParam("key", key).
-		SetResult(&pkg).
-		Get("api/packages/{key}")
+		SetResult(&pkg)
 
-	if err != nil {
-		return pkg, err
-	} else if resp.IsSuccess() {
-		return pkg, nil
-	}
-	return pkg, getError(resp)
+	return pkg, c.send(req)
 }

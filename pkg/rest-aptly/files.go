@@ -5,32 +5,20 @@ import "fmt"
 func (c *Client) FilesListDirs() ([]string, error) {
 	var dirs []string
 
-	resp, err := c.client.R().
-		SetResult(&dirs).
-		Get("api/files")
+	req := c.get("api/files").
+		SetResult(&dirs)
 
-	if err != nil {
-		return dirs, err
-	} else if resp.IsSuccess() {
-		return dirs, nil
-	}
-	return dirs, getError(resp)
+	return dirs, c.send(req)
 }
 
 func (c *Client) FilesListFiles(dir string) ([]string, error) {
 	var dirs []string
 
-	resp, err := c.client.R().
-		SetResult(&dirs).
+	req := c.get("api/files/{dir}").
 		SetPathParam("dir", dir).
-		Get("api/files/{dir}")
+		SetResult(&dirs)
 
-	if err != nil {
-		return dirs, err
-	} else if resp.IsSuccess() {
-		return dirs, nil
-	}
-	return dirs, getError(resp)
+	return dirs, c.send(req)
 }
 
 func (c *Client) FilesUpload(dir string, files []string) ([]string, error) {
@@ -41,43 +29,25 @@ func (c *Client) FilesUpload(dir string, files []string) ([]string, error) {
 		fileMap[fmt.Sprintf("file%d", i)] = file
 	}
 
-	resp, err := c.client.R().
-		SetResult(&uploaded).
-		SetFiles(fileMap).
+	req := c.post("api/files/{dir}").
 		SetPathParam("dir", dir).
-		Post("api/files/{dir}")
+		SetResult(&uploaded).
+		SetFiles(fileMap)
 
-	if err != nil {
-		return uploaded, err
-	} else if resp.IsSuccess() {
-		return uploaded, nil
-	}
-	return uploaded, getError(resp)
+	return uploaded, c.send(req)
 }
 
 func (c *Client) FilesDeleteDir(dir string) error {
-	resp, err := c.client.R().
-		SetPathParam("dir", dir).
-		Delete("api/files/{dir}")
+	req := c.delete("api/files/{dir}").
+		SetPathParam("dir", dir)
 
-	if err != nil {
-		return err
-	} else if resp.IsSuccess() {
-		return nil
-	}
-	return getError(resp)
+	return c.send(req)
 }
 
 func (c *Client) FilesDeleteFile(dir string, file string) error {
-	resp, err := c.client.R().
+	req := c.delete("api/files/{dir}/{file}").
 		SetPathParam("dir", dir).
-		SetPathParam("file", file).
-		Delete("api/files/{dir}/{file}")
+		SetPathParam("file", file)
 
-	if err != nil {
-		return err
-	} else if resp.IsSuccess() {
-		return nil
-	}
-	return getError(resp)
+	return c.send(req)
 }

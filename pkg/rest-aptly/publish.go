@@ -115,40 +115,27 @@ type publishedRepoCreateParams struct {
 func (c *Client) PublishList() ([]PublishedList, error) {
 	var lists []PublishedList
 
-	resp, err := c.client.R().
-		SetResult(&lists).
-		Get("api/publish")
+	req := c.get("api/publish").
+		SetResult(&lists)
 
-	if err != nil {
-		return lists, err
-	} else if resp.IsSuccess() {
-		return lists, nil
-	}
-	return lists, getError(resp)
+	return lists, c.send(req)
 }
 
 func (c *Client) PublishShow(distribution string, prefix string) (PublishedList, error) {
 	var lists PublishedList
 
-	resp, err := c.client.R().
+	req := c.get("api/publish/{prefix}/{name}").
 		SetResult(&lists).
 		SetPathParams(map[string]string{
 			"name":   distribution,
 			"prefix": escapePrefix(prefix),
-		}).
-		Get("api/publish/{prefix}/{name}")
+		})
 
-	if err != nil {
-		return lists, err
-	} else if resp.IsSuccess() {
-		return lists, nil
-	}
-	return lists, getError(resp)
+	return lists, c.send(req)
 }
 
 // PublishDrop deletes a published repo/snapshot
 func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions) error {
-	var lists PublishedList
 
 	params := make(map[string]string)
 
@@ -159,26 +146,19 @@ func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions
 		params["skipCleanup"] = "1"
 	}
 
-	resp, err := c.client.R().
-		SetResult(&lists).
+	req := c.delete("api/publish/{prefix}/{name}").
 		SetPathParams(map[string]string{
 			"name":   name,
 			"prefix": escapePrefix(prefix),
 		}).
-		SetQueryParams(params).
-		Delete("api/publish/{prefix}/{name}")
+		SetQueryParams(params)
 
-	if err != nil {
-		return err
-	} else if resp.IsSuccess() {
-		return nil
-	}
-	return getError(resp)
+	return c.send(req)
 }
 
 func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
 
-	req := publishedRepoCreateParams{
+	reqBody := publishedRepoCreateParams{
 		SourceKind: SourceLocalRepo,
 		Sources: []SourceEntryRequest{
 			{Name: name, Component: opts.Component},
@@ -188,28 +168,22 @@ func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, si
 		Signing:       sign,
 	}
 	// workaround for older aptly versions
-	req.Signing.Batch = true
+	reqBody.Signing.Batch = true
 
 	var list PublishedList
-	resp, err := c.client.R().
+	req := c.post("api/publish/{prefix}").
 		SetResult(&list).
 		SetPathParams(map[string]string{
 			"prefix": escapePrefix(prefix),
 		}).
-		SetBody(req).
-		Post("api/publish/{prefix}")
+		SetBody(reqBody)
 
-	if err != nil {
-		return list, err
-	} else if resp.IsSuccess() {
-		return list, nil
-	}
-	return list, getError(resp)
+	return list, c.send(req)
 }
 
 func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
 
-	req := publishedRepoCreateParams{
+	reqBody := publishedRepoCreateParams{
 		SourceKind: SourceSnapshot,
 		Sources: []SourceEntryRequest{
 			{Name: name, Component: opts.Component},
@@ -219,23 +193,17 @@ func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions
 		Signing:       sign,
 	}
 	// workaround for older aptly versions
-	req.Signing.Batch = true
+	reqBody.Signing.Batch = true
 
 	var list PublishedList
-	resp, err := c.client.R().
+	req := c.post("api/publish/{prefix}").
 		SetResult(&list).
 		SetPathParams(map[string]string{
 			"prefix": escapePrefix(prefix),
 		}).
-		SetBody(req).
-		Post("api/publish/{prefix}")
+		SetBody(reqBody)
 
-	if err != nil {
-		return list, err
-	} else if resp.IsSuccess() {
-		return list, nil
-	}
-	return list, getError(resp)
+	return list, c.send(req)
 }
 
 type PublishUpdateOptions struct {
@@ -264,19 +232,13 @@ func (c *Client) PublishUpdateOrSwitch(prefix string, distribution string, opts 
 	opts.Signing.Batch = true
 
 	var list PublishedList
-	resp, err := c.client.R().
-		SetResult(&list).
+	req := c.put("api/publish/{prefix}/{distribution}").
 		SetPathParams(map[string]string{
 			"prefix":       escapePrefix(prefix),
 			"distribution": escapePrefix(distribution),
 		}).
 		SetBody(opts).
-		Put("api/publish/{prefix}/{distribution}")
+		SetResult(&list)
 
-	if err != nil {
-		return list, err
-	} else if resp.IsSuccess() {
-		return list, nil
-	}
-	return list, getError(resp)
+	return list, c.send(req)
 }

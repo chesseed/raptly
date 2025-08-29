@@ -8,16 +8,10 @@ type Version = AptlyAPIVersion
 func (c *Client) Version() (Version, error) {
 	var version Version
 
-	resp, err := c.client.R().
-		SetResult(&version).
-		Get("api/version")
+	req := c.get("api/version").
+		SetResult(&version)
 
-	if err != nil {
-		return version, err
-	} else if resp.IsSuccess() {
-		return version, nil
-	}
-	return version, getError(resp)
+	return version, c.send(req)
 }
 
 type StorageUsage struct {
@@ -31,14 +25,8 @@ type StorageUsage struct {
 func (c *Client) StorageUsage() (StorageUsage, error) {
 	var storage StorageUsage
 
-	resp, err := c.client.R().
-		SetResult(&storage).
-		Get("api/storage")
+	req := c.get("api/storage").
+		SetResult(&storage)
 
-	if err != nil {
-		return storage, err
-	} else if resp.IsSuccess() {
-		return storage, nil
-	}
-	return storage, getError(resp)
+	return storage, c.send(req)
 }

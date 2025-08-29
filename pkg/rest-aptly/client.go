@@ -2,8 +2,6 @@
 package aptly
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
@@ -18,6 +16,43 @@ func (c *Client) GetClient() *resty.Client {
 	return c.client
 }
 
+func (c *Client) get(url string) *resty.Request {
+	return c.newRequest(resty.MethodGet, url)
+}
+
+func (c *Client) post(url string) *resty.Request {
+	return c.newRequest(resty.MethodPost, url)
+}
+
+func (c *Client) put(url string) *resty.Request {
+	return c.newRequest(resty.MethodPut, url)
+}
+
+func (c *Client) delete(url string) *resty.Request {
+	return c.newRequest(resty.MethodDelete, url)
+}
+
+func (c *Client) newRequest(method string, url string) *resty.Request {
+	r := c.client.NewRequest()
+	// workaround for pre 1.6.0 servers not sending content-type on errors
+	r.ExpectContentType("application/json")
+	r.Method = method
+	r.URL = url
+	return r
+}
+
+// send prepared request and get error
+func (c *Client) send(req *resty.Request) error {
+	res, err := req.Send()
+
+	if err != nil {
+		return err
+	} else if res.IsSuccess() {
+		return nil
+	}
+	return getError(res)
+}
+
 func NewClient(url string) *Client {
 	client := new(Client)
 	client.client = resty.New()
@@ -28,21 +63,30 @@ func NewClient(url string) *Client {
 }
 
 type APIError struct {
-	Error string `json:"error"`
+	// as pointer to distinguish between valid error and failed parsing errors (like empty bodies)
+	ErrorMsg *string `json:"error,omitempty"`
+}
+
+func (e *APIError) Error() string {
+	if e.Valid() {
+		return *e.ErrorMsg
+	}
+	return ""
+}
+
+func (e *APIError) Valid() bool {
+	return e.ErrorMsg != nil
 }
 
 // common function to get errors
 func getError(response *resty.Response) error {
 	e := response.Error()
 	if e != nil {
-		return errors.New(e.(*APIError).Error)
+		apiErr := e.(*APIError)
+		if apiErr.Valid() {
+			return apiErr
+		}
 	}
 
-	// workaround for pre 1.6.x version not sending json content-type header
-	var msg APIError
-	me := json.Unmarshal(response.Body(), &msg)
-	if me == nil {
-		return errors.New(msg.Error)
-	}
 	return fmt.Errorf("unexpected response code %v", response.StatusCode())
 }

@@ -26,32 +26,20 @@ type Snapshot struct {
 func (c *Client) SnapshotList() ([]Snapshot, error) {
 	var snaps []Snapshot
 
-	resp, err := c.client.R().
-		SetResult(&snaps).
-		Get("api/snapshots")
+	req := c.get("api/snapshots").
+		SetResult(&snaps)
 
-	if err != nil {
-		return snaps, err
-	} else if resp.IsSuccess() {
-		return snaps, nil
-	}
-	return snaps, getError(resp)
+	return snaps, c.send(req)
 }
 
 func (c *Client) SnapshotShow(name string) (Snapshot, error) {
 	var snap Snapshot
 
-	resp, err := c.client.R().
+	req := c.get("api/snapshots/{name}").
 		SetResult(&snap).
-		SetPathParam("name", name).
-		Get("api/snapshots/{name}")
+		SetPathParam("name", name)
 
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+	return snap, c.send(req)
 }
 
 func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]Package, error) {
@@ -60,15 +48,11 @@ func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]Pack
 		return nil, err
 	}
 
-	resp, err := c.client.R().
+	req := c.get("api/snapshots/{name}/packages").
 		SetPathParam("name", name).
-		SetQueryParams(params).
-		Get("api/snapshots/{name}/packages")
+		SetQueryParams(params)
 
-	if err != nil {
-		return nil, err
-	}
-	return responseToPackages(resp, opts.Detailed)
+	return sendPackagesRequest(req, opts.Detailed)
 }
 
 func (c *Client) SnapshotDrop(name string, force bool) error {
@@ -77,17 +61,11 @@ func (c *Client) SnapshotDrop(name string, force bool) error {
 		params["force"] = "1"
 	}
 
-	resp, err := c.client.R().
+	req := c.delete("api/snapshots/{name}").
 		SetQueryParams(params).
-		SetPathParam("name", name).
-		Delete("api/snapshots/{name}")
+		SetPathParam("name", name)
 
-	if err != nil {
-		return err
-	} else if resp.IsSuccess() {
-		return nil
-	}
-	return getError(resp)
+	return c.send(req)
 }
 
 func (c *Client) SnapshotFromRepo(name string, repoName string, description string) (Snapshot, error) {
@@ -102,18 +80,12 @@ func (c *Client) SnapshotFromRepo(name string, repoName string, description stri
 		Name: name, Description: description,
 	}
 
-	resp, err := c.client.R().
-		SetResult(&snap).
-		SetBody(params).
+	req := c.post("api/repos/{name}/snapshots").
 		SetPathParam("name", repoName).
-		Post("api/repos/{name}/snapshots")
+		SetResult(&snap).
+		SetBody(params)
 
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+	return snap, c.send(req)
 }
 
 func (c *Client) SnapshotFromMirror(name string, mirror string, description string) (Snapshot, error) {
@@ -128,18 +100,12 @@ func (c *Client) SnapshotFromMirror(name string, mirror string, description stri
 		Name: name, Description: description,
 	}
 
-	resp, err := c.client.R().
-		SetResult(&snap).
-		SetBody(params).
+	req := c.post("api/mirrors/{name}/snapshots").
 		SetPathParam("name", mirror).
-		Post("api/mirrors/{name}/snapshots")
+		SetResult(&snap).
+		SetBody(params)
 
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+	return snap, c.send(req)
 }
 
 type SnapshotCreateOptions struct {
@@ -161,19 +127,13 @@ func (c *Client) SnapshotCreate(name string, opts SnapshotCreateOptions) (Snapsh
 		SourceSnapshots []string `json:"SourceSnapshots,omitempty"`
 	}
 
-	resp, err := c.client.R().
+	req := c.post("api/snapshots").
 		SetResult(&snap).
 		SetBody(createParam{
 			Name: name, Description: opts.Description, PackageRefs: opts.PackageRefs, SourceSnapshots: opts.SourceSnapshots,
-		}).
-		Post("api/snapshots")
+		})
 
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+	return snap, c.send(req)
 }
 
 type PackageDiff struct {
@@ -194,16 +154,15 @@ func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]P
 	}
 	var diffs []pkgDiff
 
-	resp, err := c.client.R().
-		SetResult(&diffs).
-		SetQueryParams(params).
+	req := c.get("api/snapshots/{left}/diff/{right}").
 		SetPathParam("left", left).
 		SetPathParam("right", right).
-		Get("api/snapshots/{left}/diff/{right}")
+		SetResult(&diffs).
+		SetQueryParams(params)
 
-	if err != nil {
-		return nil, err
-	} else if resp.IsSuccess() {
+	err := c.send(req)
+
+	if err == nil {
 		diff := make([]PackageDiff, 0, len(diffs))
 
 		for _, d := range diffs {
@@ -226,8 +185,9 @@ func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]P
 			diff = append(diff, PackageDiff{Left: left, Right: right})
 		}
 		return diff, nil
+	} else {
+		return nil, err
 	}
-	return nil, getError(resp)
 }
 
 type SnapshotUpdateOptions struct {
@@ -239,17 +199,12 @@ type SnapshotUpdateOptions struct {
 
 func (c *Client) SnapshotUpdate(name string, opts SnapshotUpdateOptions) (Snapshot, error) {
 	var snap Snapshot
-	resp, err := c.client.R().
-		SetResult(&snap).
+	req := c.put("api/snapshots/{name}").
 		SetPathParam("name", name).
-		SetBody(&opts).
-		Put("api/snapshots/{name}")
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+		SetResult(&snap).
+		SetBody(&opts)
+
+	return snap, c.send(req)
 }
 
 type SnapshotMergeOptions struct {
@@ -283,16 +238,11 @@ func (c *Client) SnapshotMerge(destination string, sources []string, opts Snapsh
 		params["no-remove"] = "1"
 	}
 
-	resp, err := c.client.R().
-		SetResult(&snap).
+	req := c.post("api/snapshots/{name}/merge").
 		SetPathParam("name", destination).
+		SetResult(&snap).
 		SetQueryParams(params).
-		SetBody(&mergeRequest{Sources: sources}).
-		Post("api/snapshots/{name}/merge")
-	if err != nil {
-		return snap, err
-	} else if resp.IsSuccess() {
-		return snap, nil
-	}
-	return snap, getError(resp)
+		SetBody(&mergeRequest{Sources: sources})
+
+	return snap, c.send(req)
 }
