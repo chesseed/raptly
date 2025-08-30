@@ -43,8 +43,8 @@ func escapePrefix(prefix string) string {
 	if prefix == "." {
 		return ":."
 	}
-	s1 := strings.Replace(prefix, "_", "__", -1)
-	s2 := strings.Replace(s1, "/", "_", -1)
+	s1 := strings.ReplaceAll(prefix, "_", "__")
+	s2 := strings.ReplaceAll(s1, "/", "_")
 
 	return s2
 }

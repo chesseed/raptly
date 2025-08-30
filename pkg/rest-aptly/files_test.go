@@ -66,7 +66,11 @@ func TestFilesUpload(t *testing.T) {
 
 	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/files/dirTest",
 		func(req *http.Request) (*http.Response, error) {
-			req.ParseMultipartForm(1024 * 1024 * 4)
+			err := req.ParseMultipartForm(1024 * 1024 * 4)
+			if err != nil {
+				return nil, err
+			}
+
 			equal, err := formFileEqual(req, "file0", []byte(data1))
 			if err != nil {
 				return nil, err
