@@ -24,22 +24,15 @@ type Snapshot struct {
 }
 
 func (c *Client) SnapshotList() ([]Snapshot, error) {
-	var snaps []Snapshot
-
-	req := c.get("api/snapshots").
-		SetResult(&snaps)
-
-	return snaps, c.send(req)
+	req := c.get("api/snapshots")
+	return callAPIwithResult[[]Snapshot](c, req)
 }
 
 func (c *Client) SnapshotShow(name string) (Snapshot, error) {
-	var snap Snapshot
-
 	req := c.get("api/snapshots/{name}").
-		SetResult(&snap).
 		SetPathParam("name", name)
 
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }
 
 func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]Package, error) {
@@ -65,12 +58,10 @@ func (c *Client) SnapshotDrop(name string, force bool) error {
 		SetQueryParams(params).
 		SetPathParam("name", name)
 
-	return c.send(req)
+	return callAPI(c, req)
 }
 
 func (c *Client) SnapshotFromRepo(name string, repoName string, description string) (Snapshot, error) {
-	var snap Snapshot
-
 	type CreateParam struct {
 		Name        string `json:"Name"`
 		Description string `json:"Description,omitempty"`
@@ -82,15 +73,11 @@ func (c *Client) SnapshotFromRepo(name string, repoName string, description stri
 
 	req := c.post("api/repos/{name}/snapshots").
 		SetPathParam("name", repoName).
-		SetResult(&snap).
 		SetBody(params)
-
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }
 
 func (c *Client) SnapshotFromMirror(name string, mirror string, description string) (Snapshot, error) {
-	var snap Snapshot
-
 	type CreateParam struct {
 		Name        string `json:"Name"`
 		Description string `json:"Description,omitempty"`
@@ -102,10 +89,8 @@ func (c *Client) SnapshotFromMirror(name string, mirror string, description stri
 
 	req := c.post("api/mirrors/{name}/snapshots").
 		SetPathParam("name", mirror).
-		SetResult(&snap).
 		SetBody(params)
-
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }
 
 type SnapshotCreateOptions struct {
@@ -118,8 +103,6 @@ type SnapshotCreateOptions struct {
 }
 
 func (c *Client) SnapshotCreate(name string, opts SnapshotCreateOptions) (Snapshot, error) {
-	var snap Snapshot
-
 	type createParam struct {
 		Name            string   `json:"Name"`
 		Description     string   `json:"Description,omitempty"`
@@ -128,12 +111,10 @@ func (c *Client) SnapshotCreate(name string, opts SnapshotCreateOptions) (Snapsh
 	}
 
 	req := c.post("api/snapshots").
-		SetResult(&snap).
 		SetBody(createParam{
 			Name: name, Description: opts.Description, PackageRefs: opts.PackageRefs, SourceSnapshots: opts.SourceSnapshots,
 		})
-
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }
 
 type PackageDiff struct {
@@ -152,15 +133,12 @@ func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]P
 		Left  *string
 		Right *string
 	}
-	var diffs []pkgDiff
-
 	req := c.get("api/snapshots/{left}/diff/{right}").
 		SetPathParam("left", left).
 		SetPathParam("right", right).
-		SetResult(&diffs).
 		SetQueryParams(params)
 
-	err := c.send(req)
+	diffs, err := callAPIwithResult[[]pkgDiff](c, req)
 
 	if err == nil {
 		diff := make([]PackageDiff, 0, len(diffs))
@@ -198,13 +176,10 @@ type SnapshotUpdateOptions struct {
 }
 
 func (c *Client) SnapshotUpdate(name string, opts SnapshotUpdateOptions) (Snapshot, error) {
-	var snap Snapshot
 	req := c.put("api/snapshots/{name}").
 		SetPathParam("name", name).
-		SetResult(&snap).
 		SetBody(&opts)
-
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }
 
 type SnapshotMergeOptions struct {
@@ -218,16 +193,15 @@ type SnapshotMergeOptions struct {
 //
 // since aptly 1.6.0
 func (c *Client) SnapshotMerge(destination string, sources []string, opts SnapshotMergeOptions) (Snapshot, error) {
-	var snap Snapshot
 	type mergeRequest struct {
 		Sources []string
 	}
 	// check for simple errors before hitting the server
 	if len(sources) == 0 {
-		return snap, fmt.Errorf("minimum one source snapshot is required")
+		return Snapshot{}, fmt.Errorf("minimum one source snapshot is required")
 	}
 	if opts.Latest && opts.NoRemove {
-		return snap, fmt.Errorf("minimum one source snapshot is required")
+		return Snapshot{}, fmt.Errorf("minimum one source snapshot is required")
 	}
 
 	params := make(map[string]string)
@@ -240,9 +214,7 @@ func (c *Client) SnapshotMerge(destination string, sources []string, opts Snapsh
 
 	req := c.post("api/snapshots/{name}/merge").
 		SetPathParam("name", destination).
-		SetResult(&snap).
 		SetQueryParams(params).
 		SetBody(&mergeRequest{Sources: sources})
-
-	return snap, c.send(req)
+	return callAPIwithResult[Snapshot](c, req)
 }

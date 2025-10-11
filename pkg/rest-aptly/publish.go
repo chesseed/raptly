@@ -113,25 +113,17 @@ type publishedRepoCreateParams struct {
 }
 
 func (c *Client) PublishList() ([]PublishedList, error) {
-	var lists []PublishedList
-
-	req := c.get("api/publish").
-		SetResult(&lists)
-
-	return lists, c.send(req)
+	req := c.get("api/publish")
+	return callAPIwithResult[[]PublishedList](c, req)
 }
 
 func (c *Client) PublishShow(distribution string, prefix string) (PublishedList, error) {
-	var lists PublishedList
-
 	req := c.get("api/publish/{prefix}/{name}").
-		SetResult(&lists).
 		SetPathParams(map[string]string{
 			"name":   distribution,
 			"prefix": escapePrefix(prefix),
 		})
-
-	return lists, c.send(req)
+	return callAPIwithResult[PublishedList](c, req)
 }
 
 // PublishDrop deletes a published repo/snapshot
@@ -153,7 +145,7 @@ func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions
 		}).
 		SetQueryParams(params)
 
-	return c.send(req)
+	return callAPI(c, req)
 }
 
 func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
@@ -170,15 +162,12 @@ func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, si
 	// workaround for older aptly versions
 	reqBody.Signing.Batch = true
 
-	var list PublishedList
 	req := c.post("api/publish/{prefix}").
-		SetResult(&list).
 		SetPathParams(map[string]string{
 			"prefix": escapePrefix(prefix),
 		}).
 		SetBody(reqBody)
-
-	return list, c.send(req)
+	return callAPIwithResult[PublishedList](c, req)
 }
 
 func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
@@ -195,15 +184,12 @@ func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions
 	// workaround for older aptly versions
 	reqBody.Signing.Batch = true
 
-	var list PublishedList
 	req := c.post("api/publish/{prefix}").
-		SetResult(&list).
 		SetPathParams(map[string]string{
 			"prefix": escapePrefix(prefix),
 		}).
 		SetBody(reqBody)
-
-	return list, c.send(req)
+	return callAPIwithResult[PublishedList](c, req)
 }
 
 type PublishUpdateOptions struct {
@@ -231,14 +217,12 @@ func (c *Client) PublishUpdateOrSwitch(prefix string, distribution string, opts 
 	// workaround for older aptly versions
 	opts.Signing.Batch = true
 
-	var list PublishedList
 	req := c.put("api/publish/{prefix}/{distribution}").
 		SetPathParams(map[string]string{
 			"prefix":       escapePrefix(prefix),
 			"distribution": escapePrefix(distribution),
 		}).
-		SetBody(opts).
-		SetResult(&list)
+		SetBody(opts)
 
-	return list, c.send(req)
+	return callAPIwithResult[PublishedList](c, req)
 }

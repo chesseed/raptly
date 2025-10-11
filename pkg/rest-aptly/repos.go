@@ -9,12 +9,8 @@ type LocalRepo struct {
 
 // ReposList get the list of local repositories
 func (c *Client) ReposList() ([]LocalRepo, error) {
-	var repos []LocalRepo
-
-	req := c.get("api/repos").
-		SetResult(&repos)
-
-	return repos, c.send(req)
+	req := c.get("api/repos")
+	return callAPIwithResult[[]LocalRepo](c, req)
 }
 
 type RepoCreateOptions struct {
@@ -26,18 +22,13 @@ type RepoCreateOptions struct {
 
 // ReposCreate create new local repository
 func (c *Client) ReposCreate(name string, opts RepoCreateOptions) (LocalRepo, error) {
-	var repo LocalRepo
-
 	type CreatePayload struct {
 		Name string
 		RepoCreateOptions
 	}
-
 	req := c.post("api/repos").
-		SetResult(&repo).
 		SetBody(&CreatePayload{Name: name, RepoCreateOptions: opts})
-
-	return repo, c.send(req)
+	return callAPIwithResult[LocalRepo](c, req)
 }
 
 type RepoUpdateOptions struct {
@@ -50,25 +41,19 @@ type RepoUpdateOptions struct {
 
 // ReposEdit edit/update existing local repository
 func (c *Client) ReposEdit(name string, opts RepoUpdateOptions) (LocalRepo, error) {
-	var repo LocalRepo
 
 	req := c.put("api/repos/{name}").
 		SetPathParam("name", name).
-		SetResult(&repo).
 		SetBody(opts)
 
-	return repo, c.send(req)
+	return callAPIwithResult[LocalRepo](c, req)
 }
 
 // ReposShow get repository information
 func (c *Client) ReposShow(name string) (LocalRepo, error) {
-	var repo LocalRepo
-
 	req := c.get("api/repos/{name}").
-		SetPathParam("name", name).
-		SetResult(&repo)
-
-	return repo, c.send(req)
+		SetPathParam("name", name)
+	return callAPIwithResult[LocalRepo](c, req)
 }
 
 // ReposListPackages get list of packages
@@ -98,7 +83,7 @@ func (c *Client) ReposDrop(name string, force bool) error {
 		SetPathParam("name", name).
 		SetQueryParams(params)
 
-	return c.send(req)
+	return callAPI(c, req)
 }
 
 type RepoAddResult struct {
@@ -123,16 +108,12 @@ func (c *Client) ReposAddFile(repo string, directory string, filename string, op
 		params["forceReplace"] = "1"
 	}
 
-	var result RepoAddResult
-
 	req := c.post("api/repos/{name}/file/{dir}/{file}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetPathParam("file", filename).
-		SetQueryParams(params).
-		SetResult(&result)
-
-	return result, c.send(req)
+		SetQueryParams(params)
+	return callAPIwithResult[RepoAddResult](c, req)
 }
 
 func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOptions) (RepoAddResult, error) {
@@ -144,16 +125,11 @@ func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOp
 	if opts.ForceReplace {
 		params["forceReplace"] = "1"
 	}
-
-	var result RepoAddResult
-
 	req := c.post("api/repos/{name}/file/{dir}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
-		SetQueryParams(params).
-		SetResult(&result)
-
-	return result, c.send(req)
+		SetQueryParams(params)
+	return callAPIwithResult[RepoAddResult](c, req)
 }
 
 type RepoIncludeOptions struct {
@@ -186,16 +162,12 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 		params["ignoreSignature"] = "1"
 	}
 
-	var result RepoAddResult
-
 	req := c.post("api/repos/{name}/include/{dir}/{file}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
 		SetPathParam("file", filename).
-		SetQueryParams(params).
-		SetResult(&result)
-
-	return result, c.send(req)
+		SetQueryParams(params)
+	return callAPIwithResult[RepoAddResult](c, req)
 }
 
 // ReposIncludeDirectory include previously uploaded directory to repository
@@ -215,15 +187,11 @@ func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoI
 		params["ignoreSignature"] = "1"
 	}
 
-	var result RepoAddResult
-
 	req := c.post("api/repos/{name}/include/{dir}").
 		SetPathParam("name", repo).
 		SetPathParam("dir", directory).
-		SetQueryParams(params).
-		SetResult(&result)
-
-	return result, c.send(req)
+		SetQueryParams(params)
+	return callAPIwithResult[RepoAddResult](c, req)
 }
 
 type pkgRefList struct {
@@ -232,13 +200,8 @@ type pkgRefList struct {
 
 func (c *Client) ReposRemovePackages(repo string, keys []string) (LocalRepo, error) {
 	refs := pkgRefList{PackageRefs: keys}
-
-	var result LocalRepo
-
 	req := c.delete("api/repos/{name}/packages").
 		SetPathParam("name", repo).
-		SetBody(&refs).
-		SetResult(&result)
-
-	return result, c.send(req)
+		SetBody(&refs)
+	return callAPIwithResult[LocalRepo](c, req)
 }

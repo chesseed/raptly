@@ -22,7 +22,7 @@ func clientForTest(t *testing.T, base string) *Client {
 	httpmock.Activate(t)
 	client := NewClient(base)
 	// Get the underlying HTTP Client and set it to Mock
-	httpmock.ActivateNonDefault(client.GetClient().GetClient())
+	httpmock.ActivateNonDefault(client.GetClient())
 	return client
 }
 

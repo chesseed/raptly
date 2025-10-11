@@ -1,11 +1,8 @@
 package aptly
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
-
-	"github.com/go-resty/resty/v2"
 )
 
 // ListPackagesOptions is used in SnapshotPackages(Detailed) and RepoPackages(Detailed)
@@ -75,40 +72,41 @@ func PackageFromKey(key string) (Package, error) {
 	return Package{Key: key, Architecture: matched[2], Package: matched[3], Version: matched[4], FilesHash: matched[5]}, nil
 }
 
-func sendPackagesRequest(req *resty.Request, detailed bool) ([]Package, error) {
-	resp, err := req.Send()
+func sendPackagesRequest(req *request, detailed bool) ([]Package, error) {
+	// resp, err := req.Send()
 
-	if err != nil {
-		return nil, err
-	}
-	if resp.IsError() {
-		return nil, getError(resp)
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if resp.IsError() {
+	// 	return nil, getError(resp)
+	// }
 
-	var packages []Package
-	if detailed {
-		err = json.Unmarshal(resp.Body(), &packages)
-	} else {
-		var keys []string
-		err = json.Unmarshal(resp.Body(), &keys)
-		if err != nil {
-			return nil, err
-		}
+	// var packages []Package
+	// if detailed {
+	// 	err = json.Unmarshal(resp.Body(), &packages)
+	// } else {
+	// 	var keys []string
+	// 	err = json.Unmarshal(resp.Body(), &keys)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		packages = make([]Package, 0, len(keys))
-		for _, key := range keys {
-			p, err := PackageFromKey(key)
-			if err != nil {
-				return nil, err
-			}
-			packages = append(packages, p)
-		}
-	}
+	// 	packages = make([]Package, 0, len(keys))
+	// 	for _, key := range keys {
+	// 		p, err := PackageFromKey(key)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		packages = append(packages, p)
+	// 	}
+	// }
 
-	if err != nil {
-		return packages, err
-	}
-	return packages, nil
+	// if err != nil {
+	// 	return packages, err
+	// }
+	// return packages, nil
+	return nil, fmt.Errorf("TODO")
 }
 
 // PackagesSearch returns list of packages
@@ -132,12 +130,7 @@ func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) 
 
 // PackagesInfo returns the package by key
 func (c *Client) PackagesInfo(key string) (Package, error) {
-
-	var pkg Package
-
 	req := c.get("api/packages/{key}").
-		SetPathParam("key", key).
-		SetResult(&pkg)
-
-	return pkg, c.send(req)
+		SetPathParam("key", key)
+	return callAPIwithResult[Package](c, req)
 }

@@ -37,11 +37,11 @@ func main() {
 
 	client := aptly.NewClient(cli.Url)
 	if cli.Insecure {
-		client.GetClient().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 	if cli.User != nil {
 		if cli.BasicPW != nil {
-			client.GetClient().SetBasicAuth(*cli.User, *cli.BasicPW)
+			client.SetBasicAuth(*cli.User, *cli.BasicPW)
 		} else {
 			fmt.Fprintf(os.Stderr, "Basic auth username set but no password, define RAPTLY_BASIC_PASS environment variable or use --basic-pass\n")
 			os.Exit(1)
