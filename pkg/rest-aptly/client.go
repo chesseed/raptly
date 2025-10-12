@@ -143,6 +143,19 @@ func checkResponseForError(res *http.Response) error {
 
 }
 
+func callAPIWithResponse(c *Client, r *request) (*http.Response, error) {
+	res, err := c.Send(r)
+	if err != nil {
+		return nil, err
+	}
+	err = checkResponseForError(res)
+	if err != nil {
+		res.Body.Close()
+		return nil, err
+	}
+	return res, nil
+}
+
 func callAPI(c *Client, r *request) error {
 	res, err := c.Send(r)
 	if err != nil {

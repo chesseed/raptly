@@ -45,7 +45,7 @@ func (c *Client) SnapshotPackages(name string, opts ListPackagesOptions) ([]Pack
 		SetPathParam("name", name).
 		SetQueryParams(params)
 
-	return sendPackagesRequest(req, opts.Detailed)
+	return sendPackagesRequest(c, req, opts.Detailed)
 }
 
 func (c *Client) SnapshotDrop(name string, force bool) error {

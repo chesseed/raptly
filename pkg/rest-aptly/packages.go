@@ -1,6 +1,7 @@
 package aptly
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 )
@@ -72,41 +73,38 @@ func PackageFromKey(key string) (Package, error) {
 	return Package{Key: key, Architecture: matched[2], Package: matched[3], Version: matched[4], FilesHash: matched[5]}, nil
 }
 
-func sendPackagesRequest(req *request, detailed bool) ([]Package, error) {
-	// resp, err := req.Send()
+func sendPackagesRequest(c *Client, req *request, detailed bool) ([]Package, error) {
+	resp, err := callAPIWithResponse(c, req)
 
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if resp.IsError() {
-	// 	return nil, getError(resp)
-	// }
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 
-	// var packages []Package
-	// if detailed {
-	// 	err = json.Unmarshal(resp.Body(), &packages)
-	// } else {
-	// 	var keys []string
-	// 	err = json.Unmarshal(resp.Body(), &keys)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	var packages []Package
+	if detailed {
+		err = json.NewDecoder(resp.Body).Decode(&packages)
+	} else {
+		var keys []string
+		err = json.NewDecoder(resp.Body).Decode(&keys)
+		if err != nil {
+			return nil, err
+		}
 
-	// 	packages = make([]Package, 0, len(keys))
-	// 	for _, key := range keys {
-	// 		p, err := PackageFromKey(key)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		packages = append(packages, p)
-	// 	}
-	// }
+		packages = make([]Package, 0, len(keys))
+		for _, key := range keys {
+			p, err := PackageFromKey(key)
+			if err != nil {
+				return nil, err
+			}
+			packages = append(packages, p)
+		}
+	}
 
-	// if err != nil {
-	// 	return packages, err
-	// }
-	// return packages, nil
-	return nil, fmt.Errorf("TODO")
+	if err != nil {
+		return packages, err
+	}
+	return packages, nil
 }
 
 // PackagesSearch returns list of packages
@@ -125,7 +123,7 @@ func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) 
 	req := c.get("api/packages").
 		SetQueryParams(params)
 
-	return sendPackagesRequest(req, detailed)
+	return sendPackagesRequest(c, req, detailed)
 }
 
 // PackagesInfo returns the package by key

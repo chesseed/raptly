@@ -64,7 +64,7 @@ func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Pac
 	req := c.get("api/repos/{name}/packages").
 		SetPathParam("name", name).
 		SetQueryParams(params)
-	return sendPackagesRequest(req, opts.Detailed)
+	return sendPackagesRequest(c, req, opts.Detailed)
 }
 
 // ReposDrop delete the local repository
