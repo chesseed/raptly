@@ -17,10 +17,14 @@ type Client struct {
 	basic_pw   *string
 }
 
-func NewClient(url string) *Client {
+func NewClient(url string, config *tls.Config) *Client {
 	client := new(Client)
 	client.BaseURL = url
-	client.client = &http.Client{}
+
+	tr := &http.Transport{
+		TLSClientConfig: config,
+	}
+	client.client = &http.Client{Transport: tr}
 	return client
 }
 
@@ -43,11 +47,6 @@ func (c *Client) put(url string) *request {
 
 func (c *Client) delete(url string) *request {
 	return c.newRequest(http.MethodDelete, url)
-}
-
-func (c *Client) SetTLSClientConfig(config *tls.Config) *Client {
-	// TODO
-	return c
 }
 
 func (c *Client) SetBasicAuth(user string, password string) *Client {

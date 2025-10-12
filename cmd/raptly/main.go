@@ -35,10 +35,11 @@ func main() {
 	ctx := kong.Parse(&cli,
 		kong.Vars{"version": Version})
 
-	client := aptly.NewClient(cli.Url)
+	var tlsConf *tls.Config
 	if cli.Insecure {
-		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		tlsConf = &tls.Config{InsecureSkipVerify: true}
 	}
+	client := aptly.NewClient(cli.Url, tlsConf)
 	if cli.User != nil {
 		if cli.BasicPW != nil {
 			client.SetBasicAuth(*cli.User, *cli.BasicPW)
