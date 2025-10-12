@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type request struct {
@@ -162,4 +164,59 @@ func (r *request) GetBodyReader() io.Reader {
 	requestByte, _ := json.Marshal(r.Body)
 	requestReader := bytes.NewReader(requestByte)
 	return requestReader
+}
+
+// SetResult set the result object
+func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
+	url, err := r.GetURL(baseUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	contentType := ""
+	var payload io.Reader = nil
+	if r.Body != nil {
+		// send JSON body
+		b, err := json.Marshal(r.Body)
+		if err != nil {
+			return nil, err
+		}
+		payload = bytes.NewBuffer(b)
+		contentType = "application/json"
+	} else if len(r.Files) > 0 {
+		// send files body
+		buf := &bytes.Buffer{}
+		mpw := multipart.NewWriter(buf)
+
+		for name, path := range r.Files {
+			f, err := os.Open(path)
+			if err != nil {
+				return nil, err
+			}
+			defer f.Close()
+
+			fileWriter, err := mpw.CreateFormFile("upload", name)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = io.Copy(fileWriter, f)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = mpw.Close()
+		if err != nil {
+			return nil, err
+		}
+		contentType = mpw.FormDataContentType()
+	}
+
+	req, err := http.NewRequest(r.Method, url, payload)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+	return req, nil
 }

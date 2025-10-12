@@ -2,20 +2,26 @@
 package aptly
 
 import (
-	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
-	"os"
 )
 
 type Client struct {
 	BaseURL string
 
 	client *http.Client
+
+	basic_user *string
+	basic_pw   *string
+}
+
+func NewClient(url string) *Client {
+	client := new(Client)
+	client.BaseURL = url
+	client.client = &http.Client{}
+	return client
 }
 
 // GetClient get http client used for advanced use cases like testing
@@ -45,89 +51,26 @@ func (c *Client) SetTLSClientConfig(config *tls.Config) *Client {
 }
 
 func (c *Client) SetBasicAuth(user string, password string) *Client {
-	// TODO
+	c.basic_user = &user
+	c.basic_pw = &password
 	return c
 }
 
 func (c *Client) newRequest(method string, url string) *request {
 	r := initRequest(method, url, c.client)
-	// // workaround for pre 1.6.0 servers not sending content-type on errors
-	// r.ExpectContentType("application/json")
-	// r.Method = method
-	// r.URL = url
 	return r
 }
 
 // send prepared request and get error
 func (c *Client) Send(r *request) (*http.Response, error) {
-
-	req, err := makeRequest(c, r)
+	req, err := r.GetRawRequest(c.BaseURL)
 	if err != nil {
 		return nil, err
 	}
-
+	if c.basic_user != nil {
+		req.SetBasicAuth(*c.basic_user, *c.basic_pw)
+	}
 	return c.client.Do(req)
-}
-
-func makeRequest(c *Client, r *request) (*http.Request, error) {
-	url, err := r.GetURL(c.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	contentType := ""
-	var payload io.Reader = nil
-	if r.Body != nil {
-		// send JSON body
-		b, err := json.Marshal(r.Body)
-		if err != nil {
-			return nil, err
-		}
-		payload = bytes.NewBuffer(b)
-		contentType = "application/json"
-	} else if len(r.Files) > 0 {
-		// send files body
-		buf := &bytes.Buffer{}
-		mpw := multipart.NewWriter(buf)
-
-		for name, path := range r.Files {
-			f, err := os.Open(path)
-			if err != nil {
-				return nil, err
-			}
-			defer f.Close()
-
-			fileWriter, err := mpw.CreateFormFile("upload", name)
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = io.Copy(fileWriter, f)
-
-			if err != nil {
-				return nil, err
-			}
-		}
-		err = mpw.Close()
-		if err != nil {
-			return nil, err
-		}
-		contentType = mpw.FormDataContentType()
-	}
-
-	req, err := http.NewRequest(r.Method, url, payload)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", contentType)
-	return req, nil
-}
-
-func NewClient(url string) *Client {
-	client := new(Client)
-	client.BaseURL = url
-	client.client = &http.Client{}
-	return client
 }
 
 func checkResponseForError(res *http.Response) error {
