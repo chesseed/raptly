@@ -41,11 +41,9 @@ type RepoUpdateOptions struct {
 
 // ReposEdit edit/update existing local repository
 func (c *Client) ReposEdit(name string, opts RepoUpdateOptions) (LocalRepo, error) {
-
 	req := c.put("api/repos/{name}").
 		SetPathParam("name", name).
 		SetBody(opts)
-
 	return callAPIwithResult[LocalRepo](c, req)
 }
 
@@ -58,7 +56,6 @@ func (c *Client) ReposShow(name string) (LocalRepo, error) {
 
 // ReposListPackages get list of packages
 func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Package, error) {
-
 	params, err := opts.MakeParams()
 	if err != nil {
 		return nil, err
@@ -67,13 +64,11 @@ func (c *Client) ReposListPackages(name string, opts ListPackagesOptions) ([]Pac
 	req := c.get("api/repos/{name}/packages").
 		SetPathParam("name", name).
 		SetQueryParams(params)
-
 	return sendPackagesRequest(req, opts.Detailed)
 }
 
 // ReposDrop delete the local repository
 func (c *Client) ReposDrop(name string, force bool) error {
-
 	params := make(map[string]string)
 	if force {
 		params["force"] = "1"
@@ -82,7 +77,6 @@ func (c *Client) ReposDrop(name string, force bool) error {
 	req := c.delete("api/repos/{name}").
 		SetPathParam("name", name).
 		SetQueryParams(params)
-
 	return callAPI(c, req)
 }
 

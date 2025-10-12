@@ -43,14 +43,6 @@ func (r *request) SetPathParam(name string, value string) *request {
 	return r
 }
 
-// SetPathParams set multiple named path parameters
-func (r *request) SetPathParams(params map[string]string) *request {
-	for k, v := range params {
-		r.SetPathParam(k, v)
-	}
-	return r
-}
-
 // SetFiles add file to upload
 func (r *request) SetFiles(files map[string]string) *request {
 	for k, v := range files {

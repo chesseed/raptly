@@ -119,10 +119,9 @@ func (c *Client) PublishList() ([]PublishedList, error) {
 
 func (c *Client) PublishShow(distribution string, prefix string) (PublishedList, error) {
 	req := c.get("api/publish/{prefix}/{name}").
-		SetPathParams(map[string]string{
-			"name":   distribution,
-			"prefix": escapePrefix(prefix),
-		})
+		SetPathParam("name", distribution).
+		SetPathParam("prefix", escapePrefix(prefix))
+
 	return callAPIwithResult[PublishedList](c, req)
 }
 
@@ -139,10 +138,8 @@ func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions
 	}
 
 	req := c.delete("api/publish/{prefix}/{name}").
-		SetPathParams(map[string]string{
-			"name":   name,
-			"prefix": escapePrefix(prefix),
-		}).
+		SetPathParam("name", name).
+		SetPathParam("prefix", escapePrefix(prefix)).
 		SetQueryParams(params)
 
 	return callAPI(c, req)
@@ -163,9 +160,7 @@ func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, si
 	reqBody.Signing.Batch = true
 
 	req := c.post("api/publish/{prefix}").
-		SetPathParams(map[string]string{
-			"prefix": escapePrefix(prefix),
-		}).
+		SetPathParam("prefix", escapePrefix(prefix)).
 		SetBody(reqBody)
 	return callAPIwithResult[PublishedList](c, req)
 }
@@ -185,9 +180,7 @@ func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions
 	reqBody.Signing.Batch = true
 
 	req := c.post("api/publish/{prefix}").
-		SetPathParams(map[string]string{
-			"prefix": escapePrefix(prefix),
-		}).
+		SetPathParam("prefix", escapePrefix(prefix)).
 		SetBody(reqBody)
 	return callAPIwithResult[PublishedList](c, req)
 }
@@ -213,16 +206,12 @@ type PublishUpdateOptions struct {
 
 // PublishUpdateOrSwitch updates published list to match repository
 func (c *Client) PublishUpdateOrSwitch(prefix string, distribution string, opts PublishUpdateOptions) (PublishedList, error) {
-
 	// workaround for older aptly versions
 	opts.Signing.Batch = true
 
 	req := c.put("api/publish/{prefix}/{distribution}").
-		SetPathParams(map[string]string{
-			"prefix":       escapePrefix(prefix),
-			"distribution": escapePrefix(distribution),
-		}).
+		SetPathParam("prefix", escapePrefix(prefix)).
+		SetPathParam("distribution", distribution).
 		SetBody(opts)
-
 	return callAPIwithResult[PublishedList](c, req)
 }

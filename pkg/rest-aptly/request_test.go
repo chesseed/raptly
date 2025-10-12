@@ -31,23 +31,19 @@ func TestGetPath(t *testing.T) {
 		assert.Equal(t, "api/repos/test/snapshot", url)
 	})
 
-	t.Run("map replacement", func(t *testing.T) {
-		req := initRequest("GET", "{path1}/some/{path2}", nil)
-		req.SetPathParams(map[string]string{
-			"path1": "set",
-			"path2": "path",
-		})
+	t.Run("characture escaping", func(t *testing.T) {
+		req := initRequest("GET", "api/repos/{name}/snapshot", nil)
+		req.SetPathParam("name", "pre post")
 		url, err := req.GetPath()
 		assert.NoError(t, err)
-		assert.Equal(t, "set/some/path", url)
+		assert.Equal(t, "api/repos/pre%20post/snapshot", url)
 	})
 
 	t.Run("missing closing bracket", func(t *testing.T) {
 		req := initRequest("GET", "{path1/some/{path2}", nil)
-		req.SetPathParams(map[string]string{
-			"path1": "set",
-			"path2": "path",
-		})
+		req.SetPathParam("path1", "set")
+		req.SetPathParam("path2", "path")
+
 		_, err := req.GetPath()
 		assert.EqualError(t, err, "missing closing bracket at '{path1/'")
 	})
