@@ -1,7 +1,11 @@
 package aptly
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -57,51 +61,76 @@ func TestFilesDeleteFile(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// func formFileEqual(req *http.Request, name string, data []byte) (bool, error) {
-// 	file, handler, err := req.FormFile(name)
-// 	if err != nil {
-// 		return false, fmt.Errorf("%s does not exist", name)
-// 	}
-// 	defer file.Close()
+type FileInForm struct {
+	filename string
+	body     []byte
+}
 
-// 	buffer := make([]byte, handler.Size)
-// 	_, err = file.Read(buffer)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	return bytes.Equal(data, buffer), nil
-// }
+func formFiles(expectedFiles map[string]FileInForm) httpmock.Matcher {
+	return httpmock.NewMatcher("",
+		func(req *http.Request) bool {
+			err := req.ParseMultipartForm(1024 * 1024 * 4)
+			if err != nil {
+				return false
+			}
 
-// // TODO find out how to test upload with resty
-// func TestFilesUpload(t *testing.T) {
-// 	client := clientForTest(t, "http://host.local")
+			allEqual := true
 
-// 	data1 := "file0 data"
+			for name, formFile := range expectedFiles {
+				file, handler, err := req.FormFile(name)
+				if err != nil {
+					fmt.Printf("file '%s': %s\n", name, err.Error())
+					return false
+				}
+				defer file.Close()
 
-// 	f1, err := os.CreateTemp("", "file0_")
-// 	assert.NoError(t, err)
-// 	defer os.Remove(f1.Name())
-// 	_, err = f1.WriteString(data1)
-// 	assert.NoError(t, err)
+				if handler.Filename != formFile.filename {
+					fmt.Printf("filename '%s' not expected '%s'\n", handler.Filename, formFile.filename)
+					return false
+				}
 
-// 	httpmock.RegisterResponder(http.MethodPost, "http://host.local/api/files/dirTest",
-// 		func(req *http.Request) (*http.Response, error) {
-// 			err := req.ParseMultipartForm(1024 * 1024 * 4)
-// 			if err != nil {
-// 				return nil, err
-// 			}
+				buffer := make([]byte, handler.Size)
+				_, err = file.Read(buffer)
+				if err != nil {
+					fmt.Printf("could not read file '%s' from request: %s\n", name, err.Error())
+					return false
+				}
 
-// 			equal, err := formFileEqual(req, "file0", []byte(data1))
-// 			if err != nil {
-// 				return nil, err
-// 			}
-// 			if !equal {
-// 				return httpmock.NewStringResponse(400, "not equal"), nil
-// 			}
-// 			return httpmock.NewJsonResponse(200, []string{"file0", "extra", "another"})
-// 		})
+				if !bytes.Equal(formFile.body, buffer) {
+					fmt.Printf("file '%s' from not expected value\n", name)
+					allEqual = false
+				}
+			}
+			return allEqual
+		})
+}
 
-// 	list, err := client.FilesUpload("dirTest", []string{f1.Name()})
-// 	assert.NoError(t, err)
-// 	assert.ElementsMatch(t, list, []string{"file0", "extra", "another"})
-// }
+// TODO find out how to test upload with resty
+func TestFilesUpload(t *testing.T) {
+	client := clientForTest(t, "http://host.local")
+
+	data1 := "file0 data"
+
+	f1, err := os.CreateTemp("", "file0_")
+	assert.NoError(t, err)
+	defer os.Remove(f1.Name())
+	_, err = f1.WriteString(data1)
+	assert.NoError(t, err)
+
+	files := map[string]FileInForm{
+		"file0": {
+			filename: filepath.Base(f1.Name()),
+			body:     []byte("file0 data"),
+		},
+	}
+
+	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/api/files/dirTest",
+		formFiles(files),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(200, []string{"file0", "extra", "another"})
+		})
+
+	list, err := client.FilesUpload("dirTest", []string{f1.Name()})
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, list, []string{"file0", "extra", "another"})
+}

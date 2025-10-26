@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 )
 
 type request struct {
@@ -174,7 +175,7 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 	}
 
 	contentType := ""
-	var payload io.Reader = nil
+	var payload *bytes.Buffer = nil
 	if r.Body != nil {
 		// send JSON body
 		b, err := json.Marshal(r.Body)
@@ -185,8 +186,8 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 		contentType = "application/json"
 	} else if len(r.Files) > 0 {
 		// send files body
-		buf := &bytes.Buffer{}
-		mpw := multipart.NewWriter(buf)
+		payload = &bytes.Buffer{}
+		mpw := multipart.NewWriter(payload)
 
 		for name, path := range r.Files {
 			f, err := os.Open(path)
@@ -195,7 +196,7 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 			}
 			defer f.Close()
 
-			fileWriter, err := mpw.CreateFormFile("upload", name)
+			fileWriter, err := mpw.CreateFormFile(name, filepath.Base(path)) // path get filename
 			if err != nil {
 				return nil, err
 			}
