@@ -79,7 +79,7 @@ func checkResponseForError(res *http.Response) error {
 	var apiErr APIError
 	decodeErr := json.NewDecoder(res.Body).Decode(&apiErr)
 	if decodeErr != nil {
-		return fmt.Errorf("unexpected status code %d", res.StatusCode)
+		return fmt.Errorf("unexpected response code %d", res.StatusCode)
 	}
 	return &apiErr
 

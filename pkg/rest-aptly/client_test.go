@@ -1,5 +1,13 @@
 package aptly
 
+import (
+	"net/http"
+	"testing"
+
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/assert"
+)
+
 // func TestGet(t *testing.T) {
 // 	httpmock.Activate(t)
 // 	client := NewClient("http://host.local")
@@ -24,34 +32,32 @@ package aptly
 // 	assert.Equal(t, &response, resJSON.Result().(*Body))
 // }
 
-// func TestGetError(t *testing.T) {
+func TestGetError(t *testing.T) {
 
-// 	httpmock.Activate(t)
-// 	client := NewClient("http://host.local")
+	client := clientForTest(t, "http://host.local")
 
-// 	// Get the underlying HTTP Client and set it to Mock
-// 	httpmock.ActivateNonDefault(client.GetClient())
-
-// 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
-// 		func(req *http.Request) (*http.Response, error) {
-// 			return httpmock.NewJsonResponse(500, APIError{ErrorMsg: ptr("json")})
-// 		})
-// 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
-// 		func(req *http.Request) (*http.Response, error) {
-// 			return httpmock.NewStringResponse(501, `{"error": "plain"}`), nil
-// 		})
-// 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/invalid",
-// 		func(req *http.Request) (*http.Response, error) {
-// 			return httpmock.NewStringResponse(502, ""), nil
-// 		})
-
-// 	resJSON, err := client.get("json/content-type").Send()
-// 	assert.NoError(t, err)
-// 	assert.ErrorContains(t, getError(resJSON), "json")
-// 	resPlain, err := client.get("plain/content-type").Send()
-// 	assert.NoError(t, err)
-// 	assert.ErrorContains(t, getError(resPlain), "plain")
-// 	resStatus, err := client.get("invalid").Send()
-// 	assert.NoError(t, err)
-// 	assert.ErrorContains(t, getError(resStatus), "unexpected response code 502")
-// }
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(500, APIError{ErrorMsg: ptr("json")})
+		})
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(501, `{"error": "plain"}`), nil
+		})
+	httpmock.RegisterResponder(http.MethodGet, "http://host.local/invalid",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(502, ""), nil
+		})
+	// with content-type header
+	reqJSON := client.get("json/content-type")
+	errJSON := callAPI(client, reqJSON)
+	assert.ErrorContains(t, errJSON, "json")
+	// without content-type header
+	reqPlain := client.get("plain/content-type")
+	errPlain := callAPI(client, reqPlain)
+	assert.ErrorContains(t, errPlain, "plain")
+	// non aptly error
+	reqInvalid := client.get("invalid")
+	errInvalid := callAPI(client, reqInvalid)
+	assert.ErrorContains(t, errInvalid, "unexpected response code 502")
+}
