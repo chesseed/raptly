@@ -105,7 +105,6 @@ func formFiles(expectedFiles map[string]FileInForm) httpmock.Matcher {
 		})
 }
 
-// TODO find out how to test upload with resty
 func TestFilesUpload(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 

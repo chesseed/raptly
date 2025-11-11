@@ -175,7 +175,7 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 	}
 
 	contentType := ""
-	var payload *bytes.Buffer = nil
+	var payload *bytes.Buffer = new(bytes.Buffer)
 	if r.Body != nil {
 		// send JSON body
 		b, err := json.Marshal(r.Body)
