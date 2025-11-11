@@ -78,8 +78,8 @@ func checkResponseForError(res *http.Response) error {
 	}
 	var apiErr APIError
 	decodeErr := json.NewDecoder(res.Body).Decode(&apiErr)
-	if decodeErr != nil {
-		return fmt.Errorf("unexpected response code %d", res.StatusCode)
+	if decodeErr != nil || apiErr.ErrorMsg == nil {
+		return fmt.Errorf("unexpected status code %d", res.StatusCode)
 	}
 	return &apiErr
 
@@ -134,7 +134,7 @@ func callAPIwithResult[T any](c *Client, r *request) (T, error) {
 
 type APIError struct {
 	// as pointer to distinguish between valid error and failed parsing errors (like empty bodies)
-	ErrorMsg *string `json:"error,omitempty"`
+	ErrorMsg *string `json:"error"`
 }
 
 func (e *APIError) Error() string {

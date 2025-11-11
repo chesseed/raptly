@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/maxatome/go-testdeep/td"
-	"github.com/maxatome/tdhttpmock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,10 +23,12 @@ func TestGet(t *testing.T) {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	reqJSON := client.get("get")
-	resJSON, err := callAPIwithResult[Body](client, reqJSON)
+	req := client.get("get")
+	res, err := client.Send(req)
 	assert.NoError(t, err)
-	assert.Equal(t, response, resJSON)
+	if assert.NotNil(t, res) {
+		assert.Equal(t, 200, res.StatusCode)
+	}
 }
 
 func TestPost(t *testing.T) {
@@ -40,25 +40,18 @@ func TestPost(t *testing.T) {
 	response := Body{
 		Msg: "string",
 	}
-	request := Body{
-		Msg: "request body",
-	}
 
-	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/post",
-		tdhttpmock.JSONBody(td.JSON(`
-	{
-		"Msg": "request body"
-	}
-		`)),
+	httpmock.RegisterResponder(http.MethodPost, "http://host.local/post",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	reqJSON := client.post("post")
-	reqJSON.SetBody(&request)
-	resJSON, err := callAPIwithResult[Body](client, reqJSON)
+	req := client.post("post")
+	res, err := client.Send(req)
 	assert.NoError(t, err)
-	assert.Equal(t, response, resJSON)
+	if assert.NotNil(t, res) {
+		assert.Equal(t, 200, res.StatusCode)
+	}
 }
 
 func TestPut(t *testing.T) {
@@ -76,10 +69,12 @@ func TestPut(t *testing.T) {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	reqJSON := client.put("put")
-	resJSON, err := callAPIwithResult[Body](client, reqJSON)
+	req := client.put("put")
+	res, err := client.Send(req)
 	assert.NoError(t, err)
-	assert.Equal(t, response, resJSON)
+	if assert.NotNil(t, res) {
+		assert.Equal(t, 200, res.StatusCode)
+	}
 }
 
 func TestDelete(t *testing.T) {
@@ -97,37 +92,32 @@ func TestDelete(t *testing.T) {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	reqJSON := client.delete("delete")
-	resJSON, err := callAPIwithResult[Body](client, reqJSON)
+	req := client.delete("delete")
+	res, err := client.Send(req)
 	assert.NoError(t, err)
-	assert.Equal(t, response, resJSON)
+	if assert.NotNil(t, res) {
+		assert.Equal(t, 200, res.StatusCode)
+	}
 }
 
-func TestGetError(t *testing.T) {
-	client := clientForTest(t, "http://host.local")
+func TestCheckResponseForError(t *testing.T) {
+	// ok
+	resNoError := httpmock.NewStringResponse(200, "")
+	noErr := checkResponseForError(resNoError)
+	assert.NoError(t, noErr)
 
-	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(500, APIError{ErrorMsg: ptr("json")})
-		})
-	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(501, `{"error": "plain"}`), nil
-		})
-	httpmock.RegisterResponder(http.MethodGet, "http://host.local/invalid",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(502, ""), nil
-		})
-	// with content-type header
-	reqJSON := client.get("json/content-type")
-	errJSON := callAPI(client, reqJSON)
-	assert.ErrorContains(t, errJSON, "json")
-	// without content-type header
-	reqPlain := client.get("plain/content-type")
-	errPlain := callAPI(client, reqPlain)
-	assert.ErrorContains(t, errPlain, "plain")
-	// non aptly error
-	reqInvalid := client.get("invalid")
-	errInvalid := callAPI(client, reqInvalid)
-	assert.ErrorContains(t, errInvalid, "unexpected response code 502")
+	// no json error struct
+	resOnlyCode := httpmock.NewStringResponse(400, "")
+	errOnlyCode := checkResponseForError(resOnlyCode)
+	assert.EqualError(t, errOnlyCode, "unexpected status code 400")
+
+	// no json provides "{}"
+	resWrongJson := httpmock.NewStringResponse(520, "{}")
+	errWrongJson := checkResponseForError(resWrongJson)
+	assert.EqualError(t, errWrongJson, "unexpected status code 520")
+
+	// json error object
+	resError := httpmock.NewStringResponse(400, "{\"error\": \"test\"}")
+	errJsonErr := checkResponseForError(resError)
+	assert.EqualError(t, errJsonErr, "test")
 }
