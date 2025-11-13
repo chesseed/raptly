@@ -170,7 +170,7 @@ func (c *RepoRemoveCmd) Run(ctx *Context) error {
 const ExtDsc = ".dsc"
 const ExtDeb = ".deb"
 const ExtUdeb = ".ubed"
-const ExtChanged = ".changes"
+const ExtChanges = ".changes"
 
 type RepoAddCmd struct {
 	ForceReplace bool `kong:"name='force-replace'"`
@@ -302,7 +302,7 @@ func (c *RepoIncludeCmd) Run(ctx *Context) error {
 		err := filepath.Walk(c.Path, func(path string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
 				extension := filepath.Ext(path)
-				if extension == ExtChanged {
+				if extension == ExtChanges {
 					filesToUpload = append(filesToUpload, path)
 					referenced, err := getFilesFromChanges(path)
 					if err != nil {
@@ -321,7 +321,7 @@ func (c *RepoIncludeCmd) Run(ctx *Context) error {
 		}
 	case mode.IsRegular():
 		extension := filepath.Ext(c.Path)
-		if extension == ".changes" {
+		if extension == ExtChanges {
 			filesToUpload = append(filesToUpload, c.Path)
 			referenced, err := getFilesFromChanges(c.Path)
 			if err != nil {
