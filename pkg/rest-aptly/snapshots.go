@@ -1,6 +1,6 @@
 package aptly
 
-import "fmt"
+import "errors"
 
 // Snapshot is immutable state of repository: list of packages
 type Snapshot struct {
@@ -162,32 +162,31 @@ func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]P
 
 	err := c.send(req)
 
-	if err == nil {
-		diff := make([]PackageDiff, 0, len(diffs))
-
-		for _, d := range diffs {
-			var left, right *Package
-
-			if d.Left != nil {
-				leftPkg, err := PackageFromKey(*d.Left)
-				if err != nil {
-					return nil, err
-				}
-				left = &leftPkg
-			}
-			if d.Right != nil {
-				rightPkg, err := PackageFromKey(*d.Right)
-				if err != nil {
-					return nil, err
-				}
-				right = &rightPkg
-			}
-			diff = append(diff, PackageDiff{Left: left, Right: right})
-		}
-		return diff, nil
-	} else {
+	if err != nil {
 		return nil, err
 	}
+
+	diff := make([]PackageDiff, 0, len(diffs))
+	for _, d := range diffs {
+		var left, right *Package
+
+		if d.Left != nil {
+			leftPkg, err := PackageFromKey(*d.Left)
+			if err != nil {
+				return nil, err
+			}
+			left = &leftPkg
+		}
+		if d.Right != nil {
+			rightPkg, err := PackageFromKey(*d.Right)
+			if err != nil {
+				return nil, err
+			}
+			right = &rightPkg
+		}
+		diff = append(diff, PackageDiff{Left: left, Right: right})
+	}
+	return diff, nil
 }
 
 type SnapshotUpdateOptions struct {
@@ -224,10 +223,10 @@ func (c *Client) SnapshotMerge(destination string, sources []string, opts Snapsh
 	}
 	// check for simple errors before hitting the server
 	if len(sources) == 0 {
-		return snap, fmt.Errorf("minimum one source snapshot is required")
+		return snap, errors.New("minimum one source snapshot is required")
 	}
 	if opts.Latest && opts.NoRemove {
-		return snap, fmt.Errorf("minimum one source snapshot is required")
+		return snap, errors.New("minimum one source snapshot is required")
 	}
 
 	params := make(map[string]string)

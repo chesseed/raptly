@@ -1,12 +1,11 @@
 package aptly
 
-type AptlyAPIVersion struct {
+type ServerVersion struct {
 	Version string
 }
-type Version = AptlyAPIVersion
 
-func (c *Client) Version() (Version, error) {
-	var version Version
+func (c *Client) Version() (ServerVersion, error) {
+	var version ServerVersion
 
 	req := c.get("api/version").
 		SetResult(&version)

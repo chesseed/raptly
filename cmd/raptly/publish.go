@@ -20,9 +20,9 @@ func formatPublishedRepository(list *aptly.PublishedList) string {
 	publishes := ""
 	for i, src := range list.Sources {
 		if i > 0 {
-			publishes = publishes + ", "
+			publishes += ", "
 		}
-		publishes = publishes + fmt.Sprintf("%s: [%s]", src.Component, src.Name)
+		publishes += fmt.Sprintf("%s: [%s]", src.Component, src.Name)
 	}
 
 	if list.SourceKind == "local" {

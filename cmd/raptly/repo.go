@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	aptly "raptly/pkg/rest-aptly"
@@ -167,6 +167,11 @@ func (c *RepoRemoveCmd) Run(ctx *Context) error {
 	return nil
 }
 
+const ExtDsc = ".dsc"
+const ExtDeb = ".deb"
+const ExtUdeb = ".ubed"
+const ExtChanged = ".changes"
+
 type RepoAddCmd struct {
 	ForceReplace bool `kong:"name='force-replace'"`
 	// RemoveFiles  bool   `kong:"name='remove-files'"`
@@ -190,7 +195,7 @@ func (c *RepoAddCmd) Run(ctx *Context) error {
 				extension := filepath.Ext(path)
 				if isDebianFile(extension) {
 					filesToUpload = append(filesToUpload, path)
-					if extension == ".dsc" {
+					if extension == ExtDsc {
 						referenced, err := getFilesFromDsc(path)
 						if err != nil {
 							return err
@@ -211,7 +216,7 @@ func (c *RepoAddCmd) Run(ctx *Context) error {
 		extension := filepath.Ext(c.Path)
 		if isDebianFile(extension) {
 			filesToUpload = append(filesToUpload, c.Path)
-			if extension == ".dsc" {
+			if extension == ExtDsc {
 				referenced, err := getFilesFromDsc(c.Path)
 				if err != nil {
 					return err
@@ -239,23 +244,21 @@ func (c *RepoAddCmd) Run(ctx *Context) error {
 	return nil
 }
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
 func randSeq(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]rune, n)
 	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+		b[i] = letters[rand.IntN(len(letters))]
 	}
 	return string(b)
 }
 
 func isDebianFile(extension string) bool {
-	return extension == ".deb" || extension == ".udeb" || extension == ".dsc"
+	return extension == ExtDeb || extension == ExtUdeb || extension == ExtDsc
 }
 
 func checkFileExists(filePath string) bool {
 	_, error := os.Stat(filePath)
-	//return !os.IsNotExist(err)
 	return !errors.Is(error, os.ErrNotExist)
 }
 
@@ -299,7 +302,7 @@ func (c *RepoIncludeCmd) Run(ctx *Context) error {
 		err := filepath.Walk(c.Path, func(path string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
 				extension := filepath.Ext(path)
-				if extension == ".changes" {
+				if extension == ExtChanged {
 					filesToUpload = append(filesToUpload, path)
 					referenced, err := getFilesFromChanges(path)
 					if err != nil {

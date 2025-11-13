@@ -187,14 +187,14 @@ func (c *SnapshotDiffCmd) Run(ctx *Context) error {
 		} else if pkgDiff.Right == nil {
 			indicator = Red + "-" + Reset
 		}
-		arch := ""
+		var arch string
 		if pkgDiff.Left != nil {
 			arch = pkgDiff.Left.Architecture
 		} else {
 			arch = pkgDiff.Right.Architecture
 		}
 
-		pkg := ""
+		var pkg string
 		if pkgDiff.Left != nil {
 			pkg = pkgDiff.Left.Package
 		} else {

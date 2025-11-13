@@ -11,6 +11,15 @@ type Client struct {
 	client *resty.Client
 }
 
+func NewClient(url string) *Client {
+	client := new(Client)
+	client.client = resty.New()
+	client.client.SetBaseURL(url)
+	client.client.SetError(APIError{})
+
+	return client
+}
+
 // GetClient get resty client used for advanced use cases like testing or special auth
 func (c *Client) GetClient() *resty.Client {
 	return c.client
@@ -53,15 +62,6 @@ func (c *Client) send(req *resty.Request) error {
 	return getError(res)
 }
 
-func NewClient(url string) *Client {
-	client := new(Client)
-	client.client = resty.New()
-	client.client.SetBaseURL(url)
-	client.client.SetError(APIError{})
-
-	return client
-}
-
 type APIError struct {
 	// as pointer to distinguish between valid error and failed parsing errors (like empty bodies)
 	ErrorMsg *string `json:"error,omitempty"`
@@ -82,8 +82,8 @@ func (e *APIError) Valid() bool {
 func getError(response *resty.Response) error {
 	e := response.Error()
 	if e != nil {
-		apiErr := e.(*APIError)
-		if apiErr.Valid() {
+		apiErr, ok := e.(*APIError)
+		if ok && apiErr.Valid() {
 			return apiErr
 		}
 	}

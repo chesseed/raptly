@@ -23,7 +23,7 @@ func TestGet(t *testing.T) {
 	}
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/get",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
@@ -41,15 +41,15 @@ func TestGetError(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient().GetClient())
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/json/content-type",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(500, APIError{ErrorMsg: ptr("json")})
 		})
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/plain/content-type",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(501, `{"error": "plain"}`), nil
 		})
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/invalid",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(502, ""), nil
 		})
 

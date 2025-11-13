@@ -15,7 +15,7 @@ func TestFilesListDirs(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/files",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"dir1", "dir2", "dir3"})
 		})
 
@@ -28,7 +28,7 @@ func TestFilesListFiles(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodGet, "http://host.local/api/files/dirTest",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"file1", "file2", "file3"})
 		})
 
@@ -58,7 +58,7 @@ func TestFilesUpload(t *testing.T) {
 
 	data1 := "file0 data"
 
-	f1, err := os.CreateTemp("", "file0_")
+	f1, err := os.CreateTemp(t.TempDir(), "file0_")
 	assert.NoError(t, err)
 	defer os.Remove(f1.Name())
 	_, err = f1.WriteString(data1)
@@ -90,7 +90,7 @@ func TestFilesDeleteDir(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodDelete, "http://host.local/api/files/dirTest",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(200, ""), nil
 		})
 
@@ -101,7 +101,7 @@ func TestFilesDeleteFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
 	httpmock.RegisterResponder(http.MethodDelete, "http://host.local/api/files/dirTest/file",
-		func(req *http.Request) (*http.Response, error) {
+		func(_ *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(200, ""), nil
 		})
 

@@ -2,6 +2,7 @@ package aptly
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -24,7 +25,7 @@ func (opts *ListPackagesOptions) MakeParams() (map[string]string, error) {
 	params := make(map[string]string)
 
 	if opts.Query == "" && opts.WithDeps {
-		return nil, fmt.Errorf("withDeps requires a query")
+		return nil, errors.New("withDeps requires a query")
 	}
 	if opts.Query != "" {
 		params["q"] = opts.Query
