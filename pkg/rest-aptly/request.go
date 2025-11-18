@@ -175,7 +175,7 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 	}
 
 	contentType := ""
-	var payload *bytes.Buffer = new(bytes.Buffer)
+	payload := new(bytes.Buffer)
 	if r.Body != nil {
 		// send JSON body
 		b, err := json.Marshal(r.Body)
@@ -186,7 +186,6 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 		contentType = "application/json"
 	} else if len(r.Files) > 0 {
 		// send files body
-		payload = &bytes.Buffer{}
 		mpw := multipart.NewWriter(payload)
 
 		for name, path := range r.Files {
