@@ -38,4 +38,7 @@ pack: raptly
 	zip -r "$$path".zip "raptly" > /dev/null \
 		&& echo "Built build/$${path}.zip"; \
 
-.PHONY: pack version raptly
+lint:
+	$(go env GOPATH)/bin/golangci-lint run
+
+.PHONY: pack version raptly lint
