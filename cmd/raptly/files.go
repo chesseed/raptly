@@ -52,7 +52,6 @@ type FileUploadCmd struct {
 }
 
 func (c *FileUploadCmd) Run(ctx *Context) error {
-
 	var files []string
 
 	fi, err := os.Stat(c.Path)

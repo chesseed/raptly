@@ -114,7 +114,8 @@ var testPkgsSimple1 = testPkgData{
 			Version:      "3.0.0-2",
 			Package:      "hello",
 		},
-	}}
+	},
+}
 
 var testPkgsSimple2 = testPkgData{
 	JSON: `["Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f", "Pamd64 hello-dbgsym 3.0.0-2 185cc47ca86a934c"]`,
@@ -133,4 +134,5 @@ var testPkgsSimple2 = testPkgData{
 			Version:      "3.0.0-2",
 			Package:      "hello-dbgsym",
 		},
-	}}
+	},
+}

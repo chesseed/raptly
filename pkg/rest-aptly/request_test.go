@@ -9,14 +9,14 @@ import (
 
 func TestGetPath(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
-		req := initRequest("GET", "test", nil)
+		req := initRequest("GET", "test")
 		url, err := req.GetPath()
 		assert.NoError(t, err)
 		assert.Equal(t, "test", url)
 	})
 
 	t.Run("single replacement", func(t *testing.T) {
-		req := initRequest("GET", "/{name}", nil)
+		req := initRequest("GET", "/{name}")
 		req.SetPathParam("name", "test")
 		url, err := req.GetPath()
 		assert.NoError(t, err)
@@ -24,7 +24,7 @@ func TestGetPath(t *testing.T) {
 	})
 
 	t.Run("single replacement #2", func(t *testing.T) {
-		req := initRequest("GET", "api/repos/{name}/snapshot", nil)
+		req := initRequest("GET", "api/repos/{name}/snapshot")
 		req.SetPathParam("name", "test")
 		url, err := req.GetPath()
 		assert.NoError(t, err)
@@ -32,7 +32,7 @@ func TestGetPath(t *testing.T) {
 	})
 
 	t.Run("characture escaping", func(t *testing.T) {
-		req := initRequest("GET", "api/repos/{name}/snapshot", nil)
+		req := initRequest("GET", "api/repos/{name}/snapshot")
 		req.SetPathParam("name", "pre post")
 		url, err := req.GetPath()
 		assert.NoError(t, err)
@@ -40,7 +40,7 @@ func TestGetPath(t *testing.T) {
 	})
 
 	t.Run("missing closing bracket", func(t *testing.T) {
-		req := initRequest("GET", "{path1/some/{path2}", nil)
+		req := initRequest("GET", "{path1/some/{path2}")
 		req.SetPathParam("path1", "set")
 		req.SetPathParam("path2", "path")
 
@@ -49,32 +49,33 @@ func TestGetPath(t *testing.T) {
 	})
 
 	t.Run("missing value", func(t *testing.T) {
-		req := initRequest("GET", "{path}", nil)
+		req := initRequest("GET", "{path}")
 		_, err := req.GetPath()
 		assert.EqualError(t, err, "path parameter '{path}' not set")
 	})
 }
+
 func TestGetURL(t *testing.T) {
 	t.Run("no query params", func(t *testing.T) {
-		req := initRequest("GET", "url", nil)
+		req := initRequest("GET", "url")
 		url, err := req.GetURL("http://test")
 		assert.NoError(t, err)
 		assert.Equal(t, "http://test/url", url)
 	})
 	t.Run("base trailing slash", func(t *testing.T) {
-		req := initRequest("GET", "url", nil)
+		req := initRequest("GET", "url")
 		url, err := req.GetURL("http://test/")
 		assert.NoError(t, err)
 		assert.Equal(t, "http://test/url", url)
 	})
 	t.Run("base trailing slash + leading slash", func(t *testing.T) {
-		req := initRequest("GET", "/url", nil)
+		req := initRequest("GET", "/url")
 		url, err := req.GetURL("http://test/")
 		assert.NoError(t, err)
 		assert.Equal(t, "http://test/url", url)
 	})
 	t.Run("with query params", func(t *testing.T) {
-		req := initRequest("GET", "url", nil)
+		req := initRequest("GET", "url")
 		req.SetQueryParams(map[string]string{
 			"foo": "",
 			"qux": "baz",

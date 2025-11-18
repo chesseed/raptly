@@ -77,7 +77,6 @@ func TestPackagesInfo(t *testing.T) {
 }
 
 func TestPackageFromKey(t *testing.T) {
-
 	pkg, err := PackageFromKey("Pamd64 hello 3.0.0-2 96e8a0deaf8fc95f")
 	assert.NoError(t, err)
 	assert.Equal(t, Package{

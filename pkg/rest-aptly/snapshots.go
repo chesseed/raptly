@@ -10,10 +10,11 @@ type Snapshot struct {
 	CreatedAt  string `json:"CreatedAt"`
 	SourceKind string `json:"SourceKind"`
 	// Sources
-	Snapshots []Snapshot `json:",omitempty"`
-	//RemoteRepos []*RemoteRepo `json:",omitempty"`
+	Snapshots  []Snapshot  `json:",omitempty"`
 	LocalRepos []LocalRepo `json:",omitempty"`
 	Packages   []string    `json:",omitempty"`
+	// we ignore mirrors for now
+	// RemoteRepos []RemoteRepo `json:",omitempty"`
 
 	// Description of how snapshot was created
 	Description string
@@ -123,7 +124,6 @@ type PackageDiff struct {
 }
 
 func (c *Client) SnapshotDiff(left string, right string, onlyMatching bool) ([]PackageDiff, error) {
-
 	params := make(map[string]string)
 	if onlyMatching {
 		params["onlyMatching"] = "1"

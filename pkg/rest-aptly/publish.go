@@ -21,7 +21,6 @@ const (
 )
 
 type PublishedList struct {
-	//AcquireByHash bool `json:"acquireByHash,omitempty"`
 	// which architectures are published
 	Architectures []string
 	Distribution  string
@@ -127,9 +126,7 @@ func (c *Client) PublishShow(distribution string, prefix string) (PublishedList,
 
 // PublishDrop deletes a published repo/snapshot
 func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions) error {
-
 	params := make(map[string]string)
-
 	if opts.Force {
 		params["force"] = "1"
 	}
@@ -146,7 +143,6 @@ func (c *Client) PublishDrop(name string, prefix string, opts PublishDropOptions
 }
 
 func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
-
 	reqBody := publishedRepoCreateParams{
 		SourceKind: SourceLocalRepo,
 		Sources: []SourceEntryRequest{
@@ -166,7 +162,6 @@ func (c *Client) PublishRepo(name string, prefix string, opts PublishOptions, si
 }
 
 func (c *Client) PublishSnapshot(name string, prefix string, opts PublishOptions, sign PublishSigningOptions) (PublishedList, error) {
-
 	reqBody := publishedRepoCreateParams{
 		SourceKind: SourceSnapshot,
 		Sources: []SourceEntryRequest{

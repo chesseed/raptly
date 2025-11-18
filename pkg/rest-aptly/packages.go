@@ -57,7 +57,6 @@ type Package struct {
 	Provides *[]string
 
 	Source *string
-	//Extras map[string]string
 }
 
 var packageRegex = regexp.MustCompile(`^(\S*)P(\S+)\s(\S+)\s(\S+)\s(\S+)$`)
@@ -75,7 +74,6 @@ func PackageFromKey(key string) (Package, error) {
 
 func sendPackagesRequest(c *Client, req *request, detailed bool) ([]Package, error) {
 	resp, err := callAPIWithResponse(c, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,6 @@ func sendPackagesRequest(c *Client, req *request, detailed bool) ([]Package, err
 //
 // since Aptly 1.6.0
 func (c *Client) PackagesSearch(query string, detailed bool) ([]Package, error) {
-
 	params := make(map[string]string)
 	if query != "" {
 		params["q"] = query

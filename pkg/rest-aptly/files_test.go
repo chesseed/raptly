@@ -49,6 +49,7 @@ func TestFilesDeleteDir(t *testing.T) {
 	err := client.FilesDeleteDir("dirTest")
 	assert.NoError(t, err)
 }
+
 func TestFilesDeleteFile(t *testing.T) {
 	client := clientForTest(t, "http://host.local")
 
@@ -106,11 +107,11 @@ func formFiles(expectedFiles map[string]FileInForm) httpmock.Matcher {
 }
 
 func TestFilesUpload(t *testing.T) {
-	client := clientForTest(t, "http://host.local")
+	client := clientForTest(t, "http://files.local")
 
 	data1 := "file0 data"
 
-	f1, err := os.CreateTemp("", "file0_")
+	f1, err := os.CreateTemp(t.TempDir(), "file0_")
 	assert.NoError(t, err)
 	defer os.Remove(f1.Name())
 	_, err = f1.WriteString(data1)
@@ -123,7 +124,7 @@ func TestFilesUpload(t *testing.T) {
 		},
 	}
 
-	httpmock.RegisterMatcherResponder(http.MethodPost, "http://host.local/api/files/dirTest",
+	httpmock.RegisterMatcherResponder(http.MethodPost, "http://files.local/api/files/dirTest",
 		formFiles(files),
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, []string{"file0", "extra", "another"})

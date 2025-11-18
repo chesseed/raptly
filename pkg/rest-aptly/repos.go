@@ -93,7 +93,6 @@ type RepoAddOptions struct {
 }
 
 func (c *Client) ReposAddFile(repo string, directory string, filename string, opts RepoAddOptions) (RepoAddResult, error) {
-
 	params := make(map[string]string)
 	if opts.NoRemove {
 		params["noRemove"] = "1"
@@ -111,7 +110,6 @@ func (c *Client) ReposAddFile(repo string, directory string, filename string, op
 }
 
 func (c *Client) ReposAddDirectory(repo string, directory string, opts RepoAddOptions) (RepoAddResult, error) {
-
 	params := make(map[string]string)
 	if opts.NoRemove {
 		params["noRemove"] = "1"
@@ -141,7 +139,6 @@ type RepoIncludeOptions struct {
 //
 // Note: does not check files, it's the caller's responsibility to ensure the file is a valid changes file
 func (c *Client) ReposIncludeFile(repo string, directory string, filename string, opts RepoIncludeOptions) (RepoAddResult, error) {
-
 	params := make(map[string]string)
 	if opts.NoRemove {
 		params["noRemoveFiles"] = "1"
@@ -166,7 +163,6 @@ func (c *Client) ReposIncludeFile(repo string, directory string, filename string
 
 // ReposIncludeDirectory include previously uploaded directory to repository
 func (c *Client) ReposIncludeDirectory(repo string, directory string, opts RepoIncludeOptions) (RepoAddResult, error) {
-
 	params := make(map[string]string)
 	if opts.NoRemove {
 		params["noRemoveFiles"] = "1"

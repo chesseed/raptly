@@ -27,7 +27,6 @@ type RepoListCmd struct{}
 
 func (c *RepoListCmd) Run(ctx *Context) error {
 	repos, err := ctx.client.ReposList()
-
 	if err != nil {
 		return err
 	}
@@ -255,7 +254,6 @@ func isDebianFile(extension string) bool {
 
 func checkFileExists(filePath string) bool {
 	_, error := os.Stat(filePath)
-	//return !os.IsNotExist(err)
 	return !errors.Is(error, os.ErrNotExist)
 }
 

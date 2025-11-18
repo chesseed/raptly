@@ -22,7 +22,7 @@ type request struct {
 	Body         any
 }
 
-func initRequest(method string, reqURL string, client *http.Client) *request {
+func initRequest(method string, reqURL string) *request {
 	return &request{
 		PathTemplate: reqURL,
 		Method:       method,
@@ -201,7 +201,6 @@ func (r *request) GetRawRequest(baseUrl string) (*http.Request, error) {
 			}
 
 			_, err = io.Copy(fileWriter, f)
-
 			if err != nil {
 				return nil, err
 			}

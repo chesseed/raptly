@@ -148,7 +148,6 @@ func TestPublishShow(t *testing.T) {
 }
 
 func TestPublishDrop(t *testing.T) {
-
 	t.Run("without parameters", func(t *testing.T) {
 		client := clientForTest(t, "http://host.local")
 

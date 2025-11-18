@@ -70,7 +70,6 @@ func TestReposCreate(t *testing.T) {
 		assert.Equal(t, LocalRepo{
 			Name: "firstRepo",
 		}, repo)
-
 	})
 
 	t.Run("all options", func(t *testing.T) {
@@ -101,7 +100,6 @@ func TestReposCreate(t *testing.T) {
 			Comment:             "my comment",
 			DefaultDistribution: "dist",
 		}, repo)
-
 	})
 }
 

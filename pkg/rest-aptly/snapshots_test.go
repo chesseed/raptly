@@ -95,13 +95,11 @@ func TestSnapshotPackages(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{})
 		assert.NoError(t, err)
 		assert.Equal(t, testPkgsSimple1.Pkgs, pkgs)
-
 	})
 	t.Run("with query", func(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{Query: "query"})
 		assert.NoError(t, err)
 		assert.Equal(t, testPkgsSimple2.Pkgs, pkgs)
-
 	})
 	t.Run("detailed", func(t *testing.T) {
 		pkgs, err := client.SnapshotPackages("snapTest", ListPackagesOptions{Detailed: true})
@@ -234,7 +232,6 @@ func TestSnapshotDiff(t *testing.T) {
 			},
 		},
 	}, diff)
-
 }
 
 func TestSnapshotUpdate(t *testing.T) {

@@ -56,7 +56,7 @@ func (c *Client) SetBasicAuth(user string, password string) *Client {
 }
 
 func (c *Client) newRequest(method string, url string) *request {
-	r := initRequest(method, url, c.client)
+	r := initRequest(method, url)
 	return r
 }
 
@@ -82,7 +82,6 @@ func checkResponseForError(res *http.Response) error {
 		return fmt.Errorf("unexpected status code %d", res.StatusCode)
 	}
 	return &apiErr
-
 }
 
 func callAPIWithResponse(c *Client, r *request) (*http.Response, error) {
