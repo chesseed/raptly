@@ -24,11 +24,7 @@ func formatPublishedRepository(list *aptly.PublishedList) string {
 		}
 		publishes = publishes + fmt.Sprintf("%s: [%s]", src.Component, src.Name)
 	}
-
-	if list.SourceKind == "local" {
-		return fmt.Sprintf("%s %v publishes local {%s}", list.Path, list.Architectures, publishes)
-	}
-	return fmt.Sprintf("%s %v publishes snaphot(s) {%s}", list.Path, list.Architectures, publishes)
+	return fmt.Sprintf("%s %v publishes %s(s) {%s}", list.Path, list.Architectures, list.SourceKind, publishes)
 }
 
 type publishListCmd struct{}
