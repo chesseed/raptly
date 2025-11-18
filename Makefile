@@ -1,6 +1,7 @@
 VERSION=$(shell make -s version)
 GOOS=$(shell go env GOHOSTOS)
 GOARCH=$(shell go env GOHOSTARCH)
+GOPATH=$(shell go env GOPATH)
 
 dpkg:
 	@test -n "$(DEBARCH)" || (echo "please define DEBARCH"; exit 1)
@@ -39,6 +40,6 @@ pack: raptly
 		&& echo "Built build/$${path}.zip"; \
 
 lint:
-	$(go env GOPATH)/bin/golangci-lint run
+	$(GOPATH)/bin/golangci-lint run
 
 .PHONY: pack version raptly lint

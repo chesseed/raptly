@@ -1,0 +1,57 @@
+version: "2"
+
+run:
+    modules-download-mode: readonly
+
+linters:
+    default: none
+    enable:
+        # - depguard
+        - errcheck
+        - govet
+        - ineffassign
+        - nonamedreturns
+        - staticcheck
+        - unconvert
+        - unparam
+        - unused
+        - usetesting
+        - thelper
+        - tparallel
+    exclusions:
+      presets:
+          - comments
+          - common-false-positives
+          - legacy
+          - std-error-handling
+    settings:
+      govet:
+        enable-all: true
+        disable:
+          - fieldalignment
+          - shadow
+      # staticcheck:
+      #   checks:
+      #     - all
+      #     - -QF*
+      #     - -ST1003
+      #     - -ST1005
+      #     - -ST1008
+      #     - -ST1012
+      #     - -ST1016
+      #     - -ST1018
+      #     - -ST1023
+
+      usetesting:
+        context-background: true
+        context-todo: true
+        os-chdir: true
+        os-mkdir-temp: true
+        os-setenv: true
+        os-create-temp: true
+        os-temp-dir: true
+
+formatters:
+    enable:
+        - gofumpt
+        - goimports
