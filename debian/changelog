@@ -1,3 +1,9 @@
+raptly (0.0.2) unstable; urgency=medium
+
+  * add --no-proxy to ignore http(s) proxies
+
+ -- chesseed <9110170+chesseed@users.noreply.github.com>  Tue, 25 Nov 2025 13:14:46 +0100
+
 raptly (0.0.1) unstable; urgency=medium
 
   * Initial release. 
